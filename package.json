@@ -1,0 +1,38 @@
+{
+  "name": "projectmanager",
+  "version": "1.0.0",
+  "description": "Creating a project management tool for internal management of projects with data visualization to determine project effectiveness and implementation time lines with KPIs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon --trace-deprecation server.js",
+    "test": "echo \\Error : no test command found\\ && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tpiggo/projectManager.git"
+  },
+  "keywords": [
+    "project",
+    "manager",
+    "data",
+    "visualization"
+  ],
+  "author": "Timothy Piggott",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tpiggo/projectManager/issues"
+  },
+  "homepage": "https://github.com/tpiggo/projectManager#readme",
+  "dependencies": {
+    "ejs": "^3.1.5",
+    "express": "^4.17.1",
+    "express-ejs-layouts": "^2.5.0",
+    "fs": "0.0.1-security",
+    "http": "0.0.1-security",
+    "https": "^1.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "nodemon": "^2.0.6",
+    "path": "^0.12.7"
+  }
+}

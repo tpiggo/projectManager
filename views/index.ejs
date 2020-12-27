@@ -1,1 +1,23 @@
-<h2>This is the home page</h2>
+
+<!-- Navbar -->
+<nav id="main-nav">
+    <a class="nav-item" href="/">Home</a>
+    <% for(let element of renderable) { %>
+        <a class="nav-item" onclick="navBarOnClick(event, this,  <%= element.id %> )" ><%= element.name %></a>
+    <% } %> 
+    <a class="nav-item" onclick="navBarOnClick(event, this)">Strategic Enablers</a>
+    <button class="nav-item">
+        <!-- Search Box -->
+        Searchable Box
+    </button>
+    <div id="user-wrap">
+        <!-- User Box -->
+        User image
+    </div>
+</nav>
+<!-- Body-->
+<div id="main-container">
+    <h1>Welcome</h1>
+    <h2>This is the home page</h2>
+</div>
+<!-- Footer -->

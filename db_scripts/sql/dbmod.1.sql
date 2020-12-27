@@ -212,9 +212,20 @@ values ('% of instructional hours dedicated to culture & arts in relation to the
 create table projectdb.projectkpi(
 	kpiid int auto_increment,
 	projectid int,
-	kpi varchar(2000) unique not null,
+	kpi varchar(2000) not null,
 	primary key(kpiid, projectid),
 	constraint fk_projectkpi foreign key (projectid) references projectdb.project(projectid)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_general_ci;
+
+create table projectdb.projectstrategickpi(
+	projectid int,
+	strategickpiid int,
+	constraint fk_projectid foreign key (projectid) references projectdb.project(projectid),
+	constraint pk_strategickpiid foreign key (strategickpiid) references projectdb.strategickpi(kpiid),
+	primary key(projectid, strategickpiid)
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4

@@ -2,12 +2,12 @@
 const  http = require('http'),
        fs = require('fs'),
        jwt = require('jsonwebtoken'),
+       mysql = require('mysql'),
        expressLayouts = require('express-ejs-layouts'),
        express = require('express');
 
 // Creating app instance 
 var app = express();
-
 // Body Parser
 app.use(express.urlencoded({ extended: false }));
 
@@ -22,8 +22,9 @@ app.set('view engine', 'ejs');
 const PORT = process.env.PORT || 5000;
 
 app.use('/', require('./routes/index'));
+app.use('/DBApi', require('./routes/DBApi'));
 
-// Starting the http server server. Create an HTTPS server !!!
+// Starting the http server. Create an HTTPS server !!!
 var server = http.createServer(app);
 server.listen(PORT, function() {
     console.log(`Listening on port ${PORT}`);

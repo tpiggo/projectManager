@@ -4,7 +4,8 @@ var mysql = require('mysql');
  * Single accessor script for all DB interactions. Keeping it all in one manageable place
  */
 var pool = mysql.createPool({
-    host: "localhost",
+    connectionLimit: 100,
+    host: 'localhost',
     user: 'root',
     password: '',
     database: 'projectdb'

@@ -3,9 +3,9 @@
 <nav id="main-nav">
     <a class="nav-item" href="/">Home</a>
     <% for(let element of renderable) { %>
-        <a class="nav-item" onclick="navBarOnClick(event, this,  <%= element.id %> )" ><%= element.name %></a>
+        <a class="nav-item" type="priority" onclick="clickableElement(event, this,  <%= element.id %> )" ><%= element.name %> Priorities</a>
     <% } %> 
-    <a class="nav-item" onclick="navBarOnClick(event, this)">Strategic Enablers</a>
+    <a class="nav-item">Strategic Enablers</a>
     <button class="nav-item">
         <!-- Search Box -->
         Searchable Box

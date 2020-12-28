@@ -26,16 +26,7 @@ m_conn = MySQLdb.connect(
     port=db_connection['port']
 )
 
-
-def file_reader_filler():
-    """
-    :returns Void
-    Fills a database with the entries in a  file.
-    """
-    print("Create this function")
-
-
-def createDb():
+def createFakeData():
     print("Starting createDB function")
     tables = [
         'department',
@@ -52,7 +43,6 @@ def createDb():
     ]
     fill_table(tables[0], get_table_fields(tables[0]), 16, create_names)
     fill_table(tables[1], get_table_fields(tables[1]), 20, create_names)
-    fill_table(tables[2], get_table_fields(tables[2]), 4, create_priority)
     
 
 
@@ -92,14 +82,6 @@ def get_table_fields(table_name: str):
     field_names = [i for i in field_names if i not in primary_keys]
     return field_names
 
-def create_priority(p_type):
-    """
-    Creates Fake Priorities
-    """
-    possible_priorities = ['Strategic', 'Institutional', 'Fuckery', 'Important', 'Industrial']
-    return possible_priorities[random.randint(0, 5)]
-
-
 def create_names(p_type: str):
     """
     :type p_type string
@@ -118,4 +100,4 @@ def create_names(p_type: str):
 
 if __name__=='__main__':
     print("Started!")
-    createDb()
+    createFakeData()

@@ -2,7 +2,6 @@
 const  http = require('http'),
        fs = require('fs'),
        jwt = require('jsonwebtoken'),
-       mysql = require('mysql'),
        expressLayouts = require('express-ejs-layouts'),
        express = require('express');
 

@@ -3,13 +3,15 @@ var mysql = require('mysql');
  * Connection to the MySQL DB
  * Single accessor script for all DB interactions. Keeping it all in one manageable place
  */
-var pool = mysql.createPool({
+let poolOptions = {
     connectionLimit: 100,
     host: 'localhost',
     user: 'root',
     password: '',
     database: 'projectdb'
-});
+}
+
+var pool = mysql.createPool(poolOptions);
 
 /**
  * retrieve a connection and execute a callback function on the DB connection
@@ -22,3 +24,24 @@ exports.getConnection = function (callback){
         callback(err, connection);
     });
 };
+
+
+exports.storeOptions  = {
+    host: 'localhost',
+    user: "root",
+    password: '',
+    database: 'projectdb',
+    endConnectionOnClose: true,
+    clearExpired: true,
+    checkExpirationInterval: 30000,
+	charset: 'utf8mb4_bin',
+	schema: {
+		tableName: 'sessions',
+		columnNames: {
+			session_id: 'session_id',
+			expires: 'expires',
+			data: 'data'
+		}
+	}
+}
+

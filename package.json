@@ -4,7 +4,7 @@
   "description": "Creating a project management tool for internal management of projects with data visualization to determine project effectiveness and implementation time lines with KPIs",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node --trace-warnings server.js",
     "dev": "nodemon --trace-deprecation server.js",
     "test": "echo \\Error : no test command found\\ && exit 1"
   },
@@ -25,9 +25,12 @@
   },
   "homepage": "https://github.com/tpiggo/projectManager#readme",
   "dependencies": {
+    "bcrypt": "^5.0.0",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
     "express-ejs-layouts": "^2.5.0",
+    "express-mysql-session": "^2.1.5",
+    "express-session": "^1.17.1",
     "fs": "0.0.1-security",
     "http": "0.0.1-security",
     "https": "^1.0.0",

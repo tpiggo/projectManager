@@ -162,13 +162,26 @@ ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_general_ci;
 
-create table  projectdb.budgetbreakdowns(
+create table projectdb.budgetbreakdown(
 	bdid int auto_increment,
-	projectid int,
-	bdamount int,
+	projectid int not null,
+	bdamount int not null,
 	bddescr varchar(2000),
 	primary key(bdid, projectid),
 	constraint fk_projectbd foreign key (projectid) references projectdb.project(projectid)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_general_ci;
+
+-- users table
+create table projectdb.users(
+	userid int auto_increment,
+	username varchar(100) unique not null,
+	upass varchar(255) not null,
+	email varchar(255) not null,
+	ulevel int not null default 0,
+	primary key(userid)
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4

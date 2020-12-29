@@ -1,6 +1,4 @@
-const { SSL_OP_NO_QUERY_MTU } = require('constants');
 const express = require('express');
-const { get } = require('https');
 var router = express.Router(),
     mysql = require('mysql'),
     mysqlLib = require('../mysqlLib');
@@ -33,7 +31,7 @@ function getFromDB(query){
             });
         });
     });
-} 
+}
 
 /**
  * @description Concatenates strings in an array, using an or as a delim rather than comma 
@@ -74,15 +72,20 @@ function formattedResponseFromDB(listElements, cType, nType){
  */
 router.get('/test-connection', (req, res) =>{
     /**
-     * @todo Handle errors 
+     * @description Testing the db connection and output being arabic!
      */
     mysqlLib.getConnection((err, client) =>{
         if (err) throw err;
-        client.query('SELECT * FROM objective', (err, response) =>{
+        client.query('SELECT * FROM testtable', (err, response) =>{
             if (err) throw err;
             console.log('Successful query');
             console.log(response);
-            res.json({'Response': 'Successful call BABY'});
+            let rArr = [];
+            for (let element of response) {
+                rArr.push(element.descrp);
+            }
+            console.log(rArr);
+            res.json({response: 'Successful call BABY', db: rArr});
         });
     });
 });

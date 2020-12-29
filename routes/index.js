@@ -1,7 +1,9 @@
 var express = require('express'),
     path = require('path'),
     router = express.Router(),
-    mysqlLib = require('../mysqlLib');
+    mysqlLib = require('../mysqlLib'),
+    jwt = require('jsonwebtoken'),
+    bcrypt = require('bcrypt');
 
 /**
  * Request for homepage
@@ -27,5 +29,15 @@ router.get('/', (req, res) => {
     })
 });
 
+// Render the login page
+router.get('/login', (req, res) => {
+    res.render('login');
+});
+
+router.post('/login', (req, res) => {
+    // Get the login information
+    console.log(req.body);
+    res.send('Logged in');
+});
 
 module.exports = router;

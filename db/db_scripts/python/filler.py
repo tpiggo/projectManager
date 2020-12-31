@@ -121,6 +121,18 @@ def create_stakeholder(start=0, nb_projects=5):
                 stake_sql += f'({random.randint(1,16)}, NULL ,{i+1}),\n'
     print(stake_sql)
 
+def create_supporters(start=0 , nb_projects=50):
+    sup_sql = 'INSERT INTO projectdb.supporter (departmentid, projectid) VALUES\n'
+    for i in range(start, nb_projects+start):
+        used_dept = []
+        for _ in range(1, random.randint(2,10)):
+            dept = random.randint(1,16)
+            if (dept not in used_dept):
+                sup_sql += f'({dept}, {i+1}, \'{m_fake.sentence()}\'),\n'
+                used_dept.append(dept)
+    sup_sql = sup_sql[:-2] +';\n'
+    print(sup_sql)
+
 def create_projects(start=0, nb_projects=5):
     strat = get_table_entries('strategickpi')
     constraints = {}
@@ -201,5 +213,5 @@ def get_table_entries(table_name):
 
 if __name__=='__main__':
     print("Started!")
-    create_stakeholder(nb_projects=50)
+    create_supporters(nb_projects=50)
     m_conn.close()

@@ -34,10 +34,4 @@ router.get('/login', (req, res) => {
     res.render('login');
 });
 
-router.post('/login', (req, res) => {
-    // Get the login information
-    console.log(req.body);
-    res.send('Logged in');
-});
-
 module.exports = router;

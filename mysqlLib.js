@@ -12,7 +12,6 @@ let poolOptions = {
 }
 
 var pool = mysql.createPool(poolOptions);
-
 /**
  * retrieve a connection and execute a callback function on the DB connection
  * @param {Function} callback
@@ -25,6 +24,53 @@ exports.getConnection = function (callback){
     });
 };
 
+/**
+ * @description Creates a new Promise for asynchronous interaction.
+ * @param {String} query
+ */
+exports.query = function(query, input=null){
+    return new Promise((resolve, reject) =>{
+        this.getConnection((err, conn)=>{
+            if (err) reject(err);
+            if (input == null){
+                conn.query(query, (err, result) =>{
+                    // Release the connection. Wihtout it, we stall after 3 threads...
+                    conn.release();
+                    if (err) reject(err);
+                    else resolve(result);
+                });
+            } else {
+                conn.query(query, input,(err, result) =>{
+                    // Release the connection. Wihtout it, we stall after 3 threads...
+                    conn.release();
+                    if (err) reject(err);
+                    else resolve(result);
+                });
+            }
+        });
+    });
+}
+
+/**
+ * The tables are statically bound. 
+ */
+exports.accessableTables =   {
+    budgetbreakdown: 'budgetbreakdown',
+    company: 'company',
+    department: 'department',
+    direction: 'direction',
+    milestone: 'milestone',
+    objective: 'objective',
+    priority: 'priority',
+    project: 'project',
+    projectkpi: 'projectkpi',
+    projectstrategickpi: 'projectstrategickpi',
+    projecttype: 'projecttype',
+    stakeholder: 'stakeholder',
+    strategickpi: 'strategickpi',
+    supporter: 'supporter',
+    users: 'users'
+  }
 
 exports.storeOptions  = {
     host: 'localhost',

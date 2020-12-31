@@ -112,8 +112,8 @@ COLLATE=utf8mb4_general_ci;
 CREATE TABLE projectdb.stakeholder (
 	departmentid int,
 	companyid int,
-	projectid int, 
-	primary key(departmentid, companyid, projectid),
+	projectid int,
+	constraint pk_dcp unique (departmentid, companyid, projectid),
 	constraint fk_stakeholderdept 
 	foreign key (departmentid)
 	references projectdb.department(departmentid),

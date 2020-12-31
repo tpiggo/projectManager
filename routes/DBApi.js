@@ -1,38 +1,31 @@
 const express = require('express');
 var router = express.Router(),
     mysql = require('mysql'),
-    mysqlLib = require('../mysqlLib');
+    MySQLLib = require('../MySQLLib'),
+    bcrypt = require('bcrypt');
 
+
+var tables = MySQLLib.accessableTables;   
 
 /**
- * @description Building where query given a type and id.
+ * @description Building where query given a type and id. Not safe or user input
+ * @param {String} table 
  * @param {String} type 
  * @param {Number} id 
  */
-function whereQueryGivenID(table, type, id=-1){
+function whereID(table, type, id=-1){
     let whereClause = id < 0?"":`${type}id=${id}`
     return `SELECT * FROM ${table} WHERE ` + whereClause;
 }
 
 /**
- * @description Creates a new Promise for asynchronous interaction.
- * @param {String} query
- * @returns {Promise} 
+ * @description Building where query given a type and id. Safe for user input
+ * @param {String} table 
+ * @param {String} type 
  */
-function getFromDB(query){
-    return new Promise((resolve, reject) =>{
-        mysqlLib.getConnection((err, conn)=>{
-            if (err) reject(err);
-            conn.query(query, (err, result) =>{
-                // Release the connection. Wihtout it, we stall after 3 threads...
-                conn.release();
-                if (err) reject(err);
-                else resolve(result);
-            });
-        });
-    });
+function whereIDEscaped(table, type){
+    return `SELECT * FROM ${table} WHERE ${type}id=?`
 }
-
 /**
  * @description Concatenates strings in an array, using an or as a delim rather than comma 
  * @param {Array} strings
@@ -67,27 +60,130 @@ function formattedResponseFromDB(listElements, cType, nType){
     query = query.concatFormattedOr(formattedQuery);
     return {query: query, returnable: outerArr};
 }
+
+
+// Defining the list of queries, reducing duplicate code!
 /**
- * Testing the connection with simple DB access
+ * @description Creating a owner query. SQL safe, this is not an SQL injection
+ * @param {String} insertable 
  */
-router.get('/test-connection', (req, res) =>{
-    /**
-     * @description Testing the db connection and output being arabic!
-     */
-    mysqlLib.getConnection((err, client) =>{
-        if (err) throw err;
-        client.query('SELECT * FROM testtable', (err, response) =>{
-            if (err) throw err;
-            console.log('Successful query');
-            console.log(response);
-            let rArr = [];
-            for (let element of response) {
-                rArr.push(element.descrp);
-            }
-            console.log(rArr);
-            res.json({response: 'Successful call BABY', db: rArr});
+function getOwnerQuery(insertable){
+    return `select 
+    count(*) as numprojects, 
+    dep.name as name, 
+    dep.departmentid as id 
+    from project p 
+    left join department dep on p.owner = dep.departmentid 
+    where p.objectiveid in (
+        ${insertable}
+    ) group by id;`   
+}
+/**
+ * @description Creating a Stakeholder query. SQL safe, this is not an SQL injection
+ * @param {String} insertable 
+ */
+function getStakeHolderQuery(insertable){
+    return `select
+    s.companyid,
+    s.departmentid,
+    count(*) as numproj,
+    case when s.departmentid is not null then d.name else c.name end as name
+    from stakeholder s 
+    left join department d on s.departmentid = d.departmentid
+    left join company c on s.companyid = c.companyid
+    where s.projectid in (
+        ${insertable}
+    )
+    group by s.companyid , s.departmentid;`
+}
+/**
+ * @description Creating a supporter query. SQL safe, this is not an SQL injection
+ * @param {String} insertable 
+ */
+function getSupportersQuery(insertable){
+    return `
+    select
+    s.departmentid as supporterid,
+    count(*) as numprojects ,
+    d.name as name 
+    from supporter s 
+    left join department d on s.departmentid = d.departmentid 
+    where s.projectid in (
+    ${insertable} 
+    ) group by s.departmentid;`;
+}
+
+function groupProjectInformation(projectIDinsert,objInsert, genericListQuery,id){
+    return new Promise((resolve, reject)=>{
+        // inner list is either directions or objectives!
+        let innerList = [], supporters = [], dStake = [], cStake = [], owners = [];
+        let sql = getOwnerQuery(objInsert);
+        MySQLLib.query(sql, [id])
+        .then(results => {
+            results.forEach(value=>{
+                owners.push({id: value.id, numproj: value.numprojects, name: value.name})
+            });
+            sql= genericListQuery;
+            return MySQLLib.query(sql, [id])
+        })
+        .then(results => {
+            // Save the directions, shed extra information (unneeded)
+            results.forEach((value) => {
+                innerList.push({id: value.directionid||value.objectiveid, name: value.name || value.description})
+            });
+            // From here we can find the information about each project and the rest of the renderable information
+            sql = getStakeHolderQuery(projectIDinsert);
+            return MySQLLib.query(sql, [id])
+        })
+        .then(results => {
+            // Save the stakeholders, shed extra information (unneeded)
+            results.forEach((value) => {
+                if (value.departmentid != null){
+                    dStake.push({id: value.departmentid, numproj: value.numproj, name: value.name});
+                }
+                else if (value.companyid != null){
+                    cStake.push({id: value.companyid, numproj: value.numproj, name: value.name})
+                }
+            });
+            sql = getSupportersQuery(projectIDinsert)
+            return MySQLLib.query(sql, [id])
+        })
+        .then(results => {
+            //Savehte supporters, shed extra information (unneeded)
+            results.forEach(value => {
+                console.log(value)
+                supporters.push({id: value.supporterid, numproj: value.numprojects, name: value.name});
+            });
+            resolve({data: {
+                genericList: innerList,
+                depStake: {list: dStake, level: 3},
+                compStake: {list: cStake, level: 3},
+                supporters: {list: supporters, level: 2},
+                owners: {list: owners, level: 1}
+            }});
+        })
+        .catch(err=>{
+            console.error('Error',err);
+            reject({response: "Internal server error!"});
         });
     });
+}
+
+
+// Login
+router.post('/login', (req, res) => {
+    // Get the login information
+    console.log(req.body);
+    bcrypt.genSalt(10, function(err, salt){
+        if (err) throw err;
+        bcrypt.hash("timtim12", salt, function(err, hash){
+            if (err) throw err;
+            let a = "$2b$10$klhhAuAw41zFaZ9E32qRJu2aOoraUg.0xXX6P3qk8X8VGEMfedKN6"
+            let b = `${hash}`
+            console.log(a, a.length,"\n",b, b.length);
+            res.redirect('/');
+        })
+    })
 });
 
 /**
@@ -98,51 +194,43 @@ router.get('/get-priority', (req, res) =>{
     /**
      * @todo Handle errors 
      */
-    let sql = whereQueryGivenID('direction', 'priority', req.query.priorityid);
-    let directions = [];
-    console.log('Demand for priority\n', sql);
-    getFromDB(sql)
-        .then(results =>{
-            // Create a new clause which get the objectives then projects in general
-            let ret = formattedResponseFromDB(results, 'direction' , 'objective');
-            directions = ret.returnable;
-            sql = ret.query;
-            // Get the next the objectives
-            console.log('Done First', sql);
-            return getFromDB(sql);
+    // Using this a lot therefore, created this string to reuse
+    let projectIDinsert = `
+    select p.projectid from project p 
+        where p.objectiveid in (
+            select distinct o.objectiveid 
+            from objective o 
+            where o.directionid in (
+                select distinct d.directionid 
+                from direction d 
+                where d.priorityid = ?
+            )
+        )
+    `;
+    let distinctObjInsert = `select distinct o.objectiveid 
+    from objective o 
+    where o.directionid in (
+        select distinct d.directionid
+        from direction d 
+        where d.priorityid = ?
+    )`;
+    let genericList = `select d.directionid, d.name from direction d where d.directionid in ( select distinct d.directionid from direction d where d.priorityid = ?);`
+    groupProjectInformation(projectIDinsert, distinctObjInsert, genericList,req.query.id)
+        .then( result => {
+            result.type = "priority",
+            result.data.genericList = {list: result.data.genericList, type: 'direction'};
+            res.json(result);
         })
-        .then(results=>{
-            /**
-             * Get the project information. This information will allow for the breakdown information on the
-             * page. 
-             */ 
-            let ret = formattedResponseFromDB(results, 'objective' , 'project');
-            sql = ret.query;
-            // Don't need the outer Array.
-            console.log('Done Second', sql);
-            return getFromDB(sql);
+        .catch(err => {
+            console.log(err);
+            res.status(500).json(err);
         })
-        .then(results =>{
-            // console.log('Projects', results);
-            // console.log('Directions:', directions);
-            /**
-             * @todo: Use the projects and return the proper information 
-             */
-            console.log('Done Third');
-            // From here we can find the information about each project and the rest of the renderable information
-            res.json({response: "Got projects. Returning."});
-            console.log('Done');
-        })
-        .catch(err=>{
-            console.error('Error',err);
-            res.status(500).json({response: "Internal server error!"});
-        });
 });
 
 /**
  * Route for getting the projects from the priority
  */
-router.get('/get-priority', (req, res) =>{
+router.get('/get-priority-projects', (req, res) =>{
     /**
      * @todo Handle errors 
      */
@@ -155,26 +243,33 @@ router.get('/get-direction', (req, res) =>{
     /**
      * @todo Handle errors 
      */
-    let sql = whereQueryGivenID('objective', 'direction', req.query.directionid);
-    let objectives = [];
-    getFromDB(sql)
-        .then(results =>{
-            let formatted = formattedResponseFromDB(results, 'objective', 'project');
-            objectives = formatted.returnable;
-            sql = formatted.query;
-            console.log('Done First', sql);
-            return getFromDB(sql);
+    let projectIDinsert = `
+        select distinct o.objectiveid 
+        from objective o 
+        where o.directionid = ?
+    `;
+    let distinctObjInsert = `
+    select p.projectid 
+	from project p 
+	where p.objectiveid in (
+		select distinct o.objectiveid 
+		from objective o 
+		where o.directionid = 1
+    )`;
+    let genericListQuery = `select o.objectiveid, o.description from objective o 
+    where o.objectiveid in ( 
+        select distinct 
+        o.objectiveid from objective o
+        where o.directionid = 1
+    )`
+    groupProjectInformation(projectIDinsert, distinctObjInsert, genericListQuery, req.query.id)
+        .then( result => {
+            result.type = "direction",
+            result.data.genericList = {list: result.data.genericList, type: 'objective'};
+            res.json(result);
         })
-        .then(results =>{
-            /**
-             * @todo: Use the projects and return the proper information 
-             */
-            console.log('Proper execution',results);
-            res.json({response: "Functioned properly"});
-        })
-        .catch(err=>{
-            console.error('Error',err);
-            res.status(500).json({response: "Internal server error!"});
+        .catch(err => {
+            res.status(500).json(err);
         })
 });
 
@@ -193,9 +288,8 @@ router.get('/get-objective', (req, res)=>{
     /**
      * @todo Handle errors 
      */
-    let sql = whereQueryGivenID('project', 'objective', req.query.objectiveid);
-    getFromDB(sql)
-        .then(results =>{
+    MySQLLib.query(whereIDEscaped(tables.project, tables.objective), [req.query.id])
+        .then(results => {
             // Need only to get one level of depth since we are simply looking at objective information
             console.log('Proper execution', results);
             /**
@@ -203,7 +297,7 @@ router.get('/get-objective', (req, res)=>{
              */
             res.json({response: 'Objectives worked'});
         })
-        .catch(err=>{
+        .catch(err => {
             console.error('Error',err);
             res.status(500).json({response: "Internal server error!"});
         });
@@ -217,8 +311,8 @@ router.get('/get-objective-projects', (req, res)=>{
      * @todo Handle errors 
      */
     let projects = [];
-    getFromDB(whereQueryGivenID('project', 'project', req.query.objectiveid))
-        .then(results =>{
+    MySQLLib.query(whereIDEscaped(tables.project, tables.project), [req.query.id])
+        .then(results => {
             for( let i = 0; i < results.length; i++){
                 let project = {};
                 Object.keys(results[i]).forEach((key) =>{
@@ -248,36 +342,6 @@ router.get('/get-project', (req, res) =>{
     /**
      * @todo Handle errors 
      */
-    if (req.query.length > 1){
-        // Requesting too much data from the projects. No answer.
-        res.status(400).json({
-            response: 'Bad request. Too many argmuents!',
-            accepts: 'See documentation'
-        });
-    } else {
-        let project = {}
-        getFromDB(whereQueryGivenID('project', 'project', req.query.projectid))
-            .then(results =>{
-                // Must travel back up the objective tree to get the priority and direction, there is only one in the list
-                if (results.length < 1){
-                    return Promise.reject("Error: Did not find a match!");
-                }
-                Object.keys(results[0]).forEach((key) =>{
-                    console.log(key);
-                    project[key] = result.key;
-                });
-                /**
-                 * @todo Get the rest of the project information
-                 */
-                res.json({response: 'Project Response'});
-            })
-            .catch(err=>{
-                console.error(err);
-                // Create Error
-                res.status(500).json({response: 'Internal Server Error'});
-            })
-    }
-
 });
 
 module.exports = router;

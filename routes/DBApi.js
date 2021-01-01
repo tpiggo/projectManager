@@ -1,8 +1,7 @@
 const express = require('express');
 var router = express.Router(),
-    mysql = require('mysql'),
-    MySQLLib = require('../MySQLLib'),
-    bcrypt = require('bcrypt');
+    MySQLLib = require('../db/js/mysqlLib'),
+    bodyParser = require('body-parser');
 
 
 var tables = MySQLLib.accessableTables;   
@@ -74,9 +73,8 @@ function getOwnerQuery(insertable){
     dep.departmentid as id 
     from project p 
     left join department dep on p.owner = dep.departmentid 
-    where p.objectiveid in (
-        ${insertable}
-    ) group by id;`   
+    where p.objectiveid ${insertable}
+    group by id;`   
 }
 /**
  * @description Creating a Stakeholder query. SQL safe, this is not an SQL injection
@@ -91,9 +89,8 @@ function getStakeHolderQuery(insertable){
     from stakeholder s 
     left join department d on s.departmentid = d.departmentid
     left join company c on s.companyid = c.companyid
-    where s.projectid in (
-        ${insertable}
-    )
+    where s.projectid 
+    ${insertable}
     group by s.companyid , s.departmentid;`
 }
 /**
@@ -108,9 +105,9 @@ function getSupportersQuery(insertable){
     d.name as name 
     from supporter s 
     left join department d on s.departmentid = d.departmentid 
-    where s.projectid in (
+    where s.projectid
     ${insertable} 
-    ) group by s.departmentid;`;
+    group by s.departmentid;`;
 }
 
 function groupProjectInformation(projectIDinsert,objInsert, genericListQuery,id){
@@ -123,14 +120,22 @@ function groupProjectInformation(projectIDinsert,objInsert, genericListQuery,id)
             results.forEach(value=>{
                 owners.push({id: value.id, numproj: value.numprojects, name: value.name})
             });
-            sql= genericListQuery;
-            return MySQLLib.query(sql, [id])
+            sql = genericListQuery;
+            // Case where getting objective information
+            if ( genericListQuery.length <= 0){
+                return Promise.resolve([]);
+            } else {
+                return MySQLLib.query(sql, [id]);
+            }
         })
         .then(results => {
-            // Save the directions, shed extra information (unneeded)
-            results.forEach((value) => {
-                innerList.push({id: value.directionid||value.objectiveid, name: value.name || value.description})
-            });
+            // Save the innerList (direction or objectives), shed extra information (unneeded)
+            // We may not need this when using objectives, therefore results could be empty
+            if (results.length > 0){
+                results.forEach((value) => {
+                    innerList.push({id: value.directionid||value.objectiveid, name: value.name || value.description})
+                });
+            }
             // From here we can find the information about each project and the rest of the renderable information
             sql = getStakeHolderQuery(projectIDinsert);
             return MySQLLib.query(sql, [id])
@@ -169,23 +174,13 @@ function groupProjectInformation(projectIDinsert,objInsert, genericListQuery,id)
     });
 }
 
+router.post('/test', (req, res) => {
+    console.log(req);
+    console.log(req.headers);
+    req.
+    res.json({res: "answering"});
 
-// Login
-router.post('/login', (req, res) => {
-    // Get the login information
-    console.log(req.body);
-    bcrypt.genSalt(10, function(err, salt){
-        if (err) throw err;
-        bcrypt.hash("timtim12", salt, function(err, hash){
-            if (err) throw err;
-            let a = "$2b$10$klhhAuAw41zFaZ9E32qRJu2aOoraUg.0xXX6P3qk8X8VGEMfedKN6"
-            let b = `${hash}`
-            console.log(a, a.length,"\n",b, b.length);
-            res.redirect('/');
-        })
-    })
-});
-
+})
 /**
  * Accessor for priority information, given id
  */
@@ -195,8 +190,8 @@ router.get('/get-priority', (req, res) =>{
      * @todo Handle errors 
      */
     // Using this a lot therefore, created this string to reuse
-    let projectIDinsert = `
-    select p.projectid from project p 
+    let projectIDinsert = `in (
+        select p.projectid from project p 
         where p.objectiveid in (
             select distinct o.objectiveid 
             from objective o 
@@ -206,13 +201,15 @@ router.get('/get-priority', (req, res) =>{
                 where d.priorityid = ?
             )
         )
-    `;
-    let distinctObjInsert = `select distinct o.objectiveid 
-    from objective o 
-    where o.directionid in (
-        select distinct d.directionid
-        from direction d 
-        where d.priorityid = ?
+    )`;
+    let distinctObjInsert = ` in (
+        select distinct o.objectiveid 
+        from objective o 
+        where o.directionid in (
+            select distinct d.directionid
+            from direction d 
+            where d.priorityid = ?
+        )
     )`;
     let genericList = `select d.directionid, d.name from direction d where d.directionid in ( select distinct d.directionid from direction d where d.priorityid = ?);`
     groupProjectInformation(projectIDinsert, distinctObjInsert, genericList,req.query.id)
@@ -243,25 +240,27 @@ router.get('/get-direction', (req, res) =>{
     /**
      * @todo Handle errors 
      */
-    let projectIDinsert = `
+    let projectIDinsert = `in (
         select distinct o.objectiveid 
         from objective o 
         where o.directionid = ?
-    `;
-    let distinctObjInsert = `
-    select p.projectid 
-	from project p 
-	where p.objectiveid in (
-		select distinct o.objectiveid 
-		from objective o 
-		where o.directionid = 1
     )`;
-    let genericListQuery = `select o.objectiveid, o.description from objective o 
+    let distinctObjInsert = `in (
+        select p.projectid 
+        from project p 
+        where p.objectiveid in (
+            select distinct o.objectiveid 
+            from objective o 
+            where o.directionid = ?
+        )
+    )`;
+    let genericListQuery = `
+    select o.objectiveid, o.description from objective o 
     where o.objectiveid in ( 
         select distinct 
         o.objectiveid from objective o
-        where o.directionid = 1
-    )`
+        where o.directionid = ?
+    )`;
     groupProjectInformation(projectIDinsert, distinctObjInsert, genericListQuery, req.query.id)
         .then( result => {
             result.type = "direction",
@@ -288,18 +287,15 @@ router.get('/get-objective', (req, res)=>{
     /**
      * @todo Handle errors 
      */
-    MySQLLib.query(whereIDEscaped(tables.project, tables.objective), [req.query.id])
-        .then(results => {
-            // Need only to get one level of depth since we are simply looking at objective information
-            console.log('Proper execution', results);
-            /**
-             * @todo: Parse the projects
-             */
-            res.json({response: 'Objectives worked'});
+    let projectIDinsert = ` = ? `;
+    let distinctObjInsert = '= ?';
+
+    groupProjectInformation(projectIDinsert, distinctObjInsert, '', req.query.id)
+        .then( result => {
+            res.json(result);
         })
         .catch(err => {
-            console.error('Error',err);
-            res.status(500).json({response: "Internal server error!"});
+            res.status(500).json(err);
         });
 });
 

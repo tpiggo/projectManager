@@ -6,7 +6,7 @@ const  https = require('https'),
        express = require('express'),
        session = require('express-session'),
        MySQLStore = require('express-mysql-session')(session),
-       mysqlLib = require('./mysqlLib');
+       mysqlLib = require('./db/js/mysqlLib');
 
 // Creating app instance 
 var app = express();

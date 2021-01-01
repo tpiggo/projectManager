@@ -213,5 +213,5 @@ def get_table_entries(table_name):
 
 if __name__=='__main__':
     print("Started!")
-    create_supporters(nb_projects=50)
+    get_table_entries()
     m_conn.close()

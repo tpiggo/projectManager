@@ -1,8 +1,9 @@
 <h1>Login</h1>
-<form method='POST' action="/DBAPI/login">
+<div id='login-div'>
     <label for="username">Username: </label>
-    <input type="text" name="username" placeholder="Username">
+    <input id='un' type="text" name="username" placeholder="Username">
     <label for="password">Password: </label>
-    <input type="password" name="password" placeholder="password">
-    <input type="submit" value="Login">
-</form>
+    <input id='pw' type="password" name="password" placeholder="password">
+    <input type="submit" value="Login" onclick="performLogin()">
+</div>
+<script type='text/javascript' src='/js/login.js'></script>

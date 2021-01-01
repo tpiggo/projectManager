@@ -1,5 +1,6 @@
 const main = document.getElementById('main-container');
-
+var userExecution = [];
+var current = {type: null, id: null};
 /**
  * @description Calling the backend to get data from the specified URL with formatted string
  * @param {Event} event 
@@ -9,6 +10,31 @@ const main = document.getElementById('main-container');
 function clickableElement(event, target, id){
     // Create URL for fetching backend data using Fetch API
     let type = target.getAttribute('type');
+    getTypeBackend(type, id);
+    // add it to list of clicked elements for Back function!
+    if ( current.type != null && current.id != null){
+        userExecution.push(current);
+    }
+    current = {type: type, id: id};
+    
+}
+
+/**
+ * Go back on the users execution
+ */
+function goBack(){
+    last = userExecution.pop();
+    console.log(last);
+    current = last;
+    getTypeBackend(last.type, last.id);
+}
+
+/**
+ * 
+ * @param {String} type 
+ * @param {Number} id 
+ */
+function getTypeBackend(type, id){
     let url = `/DBApi/get-${type}?id=${id}`
     fetch(url)
         .then(response => response.json())// parse the body to a json
@@ -23,7 +49,6 @@ function clickableElement(event, target, id){
         })
         .then(result => {
             // Push the box to the front and remove spinner
-            console.log(result, 'DONE');
             main.appendChild(result);
         })
         .catch(err=>console.error(err));
@@ -37,14 +62,42 @@ function createHeader(type, list){
     h5.innerHTML = ` Number of ${type}: ${list.length}`;
     return h5;
 }
+/**
+ * 
+ * @param {String} type 
+ * @param {Array} list 
+ */
 function createBreakdown(type, list){
     // For now is just a list of elements
     if (type == 'compStake' || type == 'depStake'){
         type = 'stakeholder';
     }
-    let ulEl = document.createElement('ul');
-    createList({type, list}, ulEl);
-    return ulEl;
+    // create Doughnut with ChartJS
+    let newDoughnut = document.createElement('canvas');
+    newDoughnut.id = `graph-${type}`;
+    let mDoughnut = newDoughnut.getContext('2d');
+    let labels  = [], data = [], backgroundColours = [], i=0;
+    list.forEach(value => {
+        labels.push(value.name);
+        data.push(value.numproj);
+        let r = Math.ceil(Math.random()*256);
+        let g = Math.ceil(Math.random()*256);
+        let b = Math.ceil(Math.random()*256);
+        backgroundColours.push(`rgb(${r},${g},${b})`);
+    });
+    let mChart = new Chart(mDoughnut, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Number of Projects",
+                data: data,
+                backgroundColor : backgroundColours
+            }],
+        }
+    });
+    console.log(mChart);
+    return newDoughnut;
 }
 /**
  * 
@@ -58,7 +111,6 @@ function createList({type, list}, parent){
         listItem.innerHTML = list[i].name;
         listItem.className = 'generic-list-item';
         listItem.setAttribute('type', type);
-        listItem.setAttribute('numProj', list[i].numproj);
         let onclick = `clickableElement(event, this, ${list[i].id})`;
         listItem.setAttribute('onclick', onclick);
         parent.appendChild(listItem);
@@ -83,11 +135,9 @@ function appendToElement(parent, listableElements){
 function createNewBox(data){
     return new Promise((resolve, reject) =>{
         let box = document.createElement('div');
-        let leftBox = document.createElement('div');
+        box.id='pod-breakdown';
+        let leftBox;
         let rightBox = document.createElement('div');
-        let objectList = document.createElement('ul');
-        // Create the left box items
-        leftBox.appendChild(createList(data.genericList, objectList));
         let listElements = [];
         let contained = {};
         let i = 0;
@@ -111,33 +161,37 @@ function createNewBox(data){
                 }
             }
         });
-        leftBox.id = 'left-object-box';
         rightBox.id = 'right-object-box';
         listElements.sort((a,b) => {
             return a.level - b.level;
         });
         listElements.forEach((value, i) => {
-            console.log(value);
             listElements[i] = {
                 header: createHeader(value.type, value.list),
                 bd: createBreakdown(value.type, value.list),
             }
         });
+        // Create the left box items
+        if (data.genericList.list != undefined && data.genericList.list.length > 0){
+            leftBox = document.createElement('div');
+            leftBox.appendChild(createList(
+                data.genericList, 
+                document.createElement('ul')
+            ));
+            leftBox.id = 'left-object-box';
+            box.appendChild(leftBox);
+        }
         appendToElement(rightBox, listElements);
-        leftBox.appendChild(objectList);
-        box.appendChild(leftBox);
         box.appendChild(rightBox);
         // Mina page could have more than one element, this should only execute one loop
         while (main.children[0] != undefined){
             main.removeChild(main.children[0]);
         }
-        console.log(box)
         resolve(box);
     });
 }
 
 async function createDirectionBox(data){
     let main = await createNewBox(data);
-    console.log(main);
     return Promise.resolve(main);
 }

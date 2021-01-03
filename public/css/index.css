@@ -2,7 +2,7 @@
     display: block;
 }
 
-#pod-breakdown{
+#priority-breakdown{
     display: grid;
-    grid-template-columns: minmax(150px, 25%) 1fr;
+    grid-template-columns: minmax(150px, 20%) 1fr;
 }

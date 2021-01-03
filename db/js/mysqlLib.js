@@ -27,6 +27,7 @@ exports.getConnection = function (callback){
 /**
  * @description Creates a new Promise for asynchronous interaction.
  * @param {String} query
+ * @returns {Promise<Array>}
  */
 exports.query = function(query, input=null){
     return new Promise((resolve, reject) =>{

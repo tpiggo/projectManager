@@ -1,4 +1,3 @@
-const main = document.getElementById('main-container');
 var userExecution = [];
 var current = {type: null, id: null};
 /**
@@ -16,7 +15,6 @@ function clickableElement(event, target, id){
         userExecution.push(current);
     }
     current = {type: type, id: id};
-    
 }
 
 /**
@@ -39,21 +37,124 @@ function getTypeBackend(type, id){
     fetch(url)
         .then(response => response.json())// parse the body to a json
         .then(result =>{
-            console.log("response", result);// use the result
-            switch (result.type){
-                case 'direction':
-                    return createDirectionBox(result.data);
-                default:
-                    return createNewBox(result.data);
+            if (type == ' project'){
+                return createProject(result.data);
             }
-        })
-        .then(result => {
-            // Push the box to the front and remove spinner
-            main.appendChild(result);
+            createBox(result.type, result.data, result.id);
         })
         .catch(err=>console.error(err));
 }
 
+/**
+ * 
+ * @param {String} type 
+ * @param {Number} id 
+ */
+function getProjectsOfType(type, id){
+    let url = `/DBApi/get-${type}-projects?id=${id}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(result => {
+            console.log(result);
+            if ( result.data.length < 1){
+                throw Error('Error: Server error! Try again later!');
+            }
+            console.log(result);
+            createBox(result.type, result.data, result.id);
+            id = result.data[0].id;
+            // Get the first project
+            return getProject(id);
+        })
+        .then(result => {
+            console.log("first project: ", result);
+        })
+        .catch(err => {
+            console.log('Error occurred:', err);
+        });
+} 
+
+/**
+ * 
+ * @param {Number} id 
+ */
+function getProject(id){
+    let url = `/DBApi/get-project?id=${id}`
+    // Creates Promise for easy interaction
+    return new Promise((resolve, reject) => {
+        fetch(url)
+            .then(response => {
+                resolve(response.json())
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
+}
+
+/**
+ * 
+ * @param {HTMLElement} target 
+ * @param {Number} id 
+ */
+function clickProject(target, id){
+    getProject(id)
+        .then(result => {
+            createProject(result);
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
+
+/**
+ * 
+ * @param {*} projData 
+ */
+function createProject(projData){
+
+}
+
+/**
+ * 
+ * @param {String} type 
+ * @param {JSON} data 
+ */
+function createBox(type, data, id){
+    let aPromise ;
+    let appendID='main-container';
+    console.log(type.includes('projects'), type)
+    if ( type ==  'direction'){
+        aPromise = createDirectionBox(data, type, id);
+        appendID = 'priority-detailed'
+    } else if ( type.includes('projects')){
+        // We know that all types of project listables are returned in this form
+        aPromise = createProjectsBox(data, type);
+    } else {
+        if ( type == 'objective'){
+            appendID = 'direction-detailed'
+        }
+        aPromise = createNewChartBox(data, type, id);
+    }
+    // Handle the promise
+    aPromise
+        .then(result => {
+            console.log(appendID)
+            let appendBox = document.getElementById(appendID);
+            while (appendBox.children[0] != undefined){
+                appendBox.removeChild(appendBox.children[0]);
+            }
+            appendBox.appendChild(result);
+        })
+        .catch(err=> {
+            console.error(err);
+        });
+} 
+
+/**
+ * 
+ * @param {String} type 
+ * @param {Array} list 
+ */
 function createHeader(type, list){
     if (type == 'compStake' || type == 'depStake'){
         type = 'stakeholder';
@@ -62,6 +163,7 @@ function createHeader(type, list){
     h5.innerHTML = ` Number of ${type}: ${list.length}`;
     return h5;
 }
+
 /**
  * 
  * @param {String} type 
@@ -106,6 +208,7 @@ function createBreakdown(type, list){
  * @param {HTMLElement} parent 
  */
 function createList({type, list}, parent){
+    console.log(type, list);
     for (let i = 0; i < list.length; i++){
         let listItem = document.createElement('li');
         listItem.innerHTML = list[i].name;
@@ -126,17 +229,46 @@ function createList({type, list}, parent){
 function appendToElement(parent, listableElements){
     for (let el of listableElements){
         let div = document.createElement('div');
-        div.appendChild(el.header);
-        div.appendChild(el.bd);
+        if (el instanceof HTMLElement){
+            div = el;
+        } else {
+            div.appendChild(el.header);
+            div.appendChild(el.bd);
+        }
         parent.appendChild(div);
     }
 }
 
-function createNewBox(data){
+/**
+ * 
+ * @param {Array} data 
+ * @param {String} type 
+ */
+function createProjectsBox(data, type){
+    return new Promise((resolve, reject) => {
+        let newDiv = document.createElement('div');
+        newDiv.id = type;
+        let leftBox = document.createElement('div');
+        leftBox.id = 'project-list';
+        let rightBox = document.createElement('div');
+        rightBox.id = 'project-information';
+        console.log(data)
+        createList({type, list: data}, leftBox);
+        appendToElement(newDiv, [leftBox, rightBox]);
+        resolve(newDiv);
+    });
+}
+
+/**
+ * 
+ * @param {JSON} data
+ * @param {String} type
+ * @returns {Promise<HTMLLIElement>}
+ */
+function createNewChartBox(data, boxType, id){
     return new Promise((resolve, reject) =>{
         let box = document.createElement('div');
-        box.id='pod-breakdown';
-        let leftBox;
+        box.id=`${boxType}-breakdown`;
         let rightBox = document.createElement('div');
         let listElements = [];
         let contained = {};
@@ -161,7 +293,7 @@ function createNewBox(data){
                 }
             }
         });
-        rightBox.id = 'right-object-box';
+        rightBox.id = `${boxType}-detailed`;
         listElements.sort((a,b) => {
             return a.level - b.level;
         });
@@ -173,25 +305,27 @@ function createNewBox(data){
         });
         // Create the left box items
         if (data.genericList.list != undefined && data.genericList.list.length > 0){
-            leftBox = document.createElement('div');
+            let leftBox = document.createElement('div');
             leftBox.appendChild(createList(
                 data.genericList, 
                 document.createElement('ul')
             ));
-            leftBox.id = 'left-object-box';
+            leftBox.id = `${boxType}-list`
             box.appendChild(leftBox);
         }
         appendToElement(rightBox, listElements);
         box.appendChild(rightBox);
-        // Mina page could have more than one element, this should only execute one loop
-        while (main.children[0] != undefined){
-            main.removeChild(main.children[0]);
-        }
+        let footer = document.createElement('button');
+        footer.id = `${boxType}-get-projects`;
+        footer.setAttribute('onclick', `getProjectsOfType('${boxType}', ${id})`);
+        footer.innerHTML = 'See all projects!';
+        box.appendChild(footer);
         resolve(box);
     });
 }
 
-async function createDirectionBox(data){
-    let main = await createNewBox(data);
+async function createDirectionBox(data, type, id){
+    let main = await createNewChartBox(data, type, id);
+    // Want to add mroe data here
     return Promise.resolve(main);
 }

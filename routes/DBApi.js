@@ -60,6 +60,15 @@ function formattedResponseFromDB(listElements, cType, nType){
     return {query: query, returnable: outerArr};
 }
 
+function getProjects(insertable){
+    return ` select
+    p.projectid as id, 
+    p.name as name
+    from project p
+    where p.objectiveid
+    ${insertable}
+    order by id;`
+}
 
 // Defining the list of queries, reducing duplicate code!
 /**
@@ -159,13 +168,16 @@ function groupProjectInformation(projectIDinsert,objInsert, genericListQuery,id)
                 console.log(value)
                 supporters.push({id: value.supporterid, numproj: value.numprojects, name: value.name});
             });
-            resolve({data: {
-                genericList: innerList,
-                depStake: {list: dStake, level: 3},
-                compStake: {list: cStake, level: 3},
-                supporters: {list: supporters, level: 2},
-                owners: {list: owners, level: 1}
-            }});
+            resolve({
+                data: {
+                    genericList: innerList,
+                    depStake: {list: dStake, level: 3},
+                    compStake: {list: cStake, level: 3},
+                    supporters: {list: supporters, level: 2},
+                    owners: {list: owners, level: 1}
+                },
+                id : id
+            });
         })
         .catch(err=>{
             console.error('Error',err);
@@ -214,7 +226,7 @@ router.get('/get-priority', (req, res) =>{
     let genericList = `select d.directionid, d.name from direction d where d.directionid in ( select distinct d.directionid from direction d where d.priorityid = ?);`
     groupProjectInformation(projectIDinsert, distinctObjInsert, genericList,req.query.id)
         .then( result => {
-            result.type = "priority",
+            result.type = "priority";
             result.data.genericList = {list: result.data.genericList, type: 'direction'};
             res.json(result);
         })
@@ -231,7 +243,25 @@ router.get('/get-priority-projects', (req, res) =>{
     /**
      * @todo Handle errors 
      */
-})
+    let projectInsert = `in (
+        select distinct o.objectiveid
+        from  objective o
+        where o.directionid in (
+            select distinct d.directionid
+            from direction d
+            where d.priorityid = ?	
+        )
+    )`;
+    console.log(req.query);
+    MySQLLib.query(getProjects(projectInsert), req.query.id)
+        .then(results => {
+            res.json({data: results, type: 'priority-projects'});
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({response: "Internal server error!"});
+        });
+});
 
 /**
  * Accessor for direction information, given id
@@ -279,6 +309,19 @@ router.get('/get-direction-projects', (req, res) =>{
     /**
      * @todo Handle errors 
      */
+    let projectInsert = `in (
+        select distinct o.objectiveid
+        from  objective o
+        where o.directionid = ?
+    )`  
+    MySQLLib.query(getProjects(projectInsert), req.query.id)
+        .then(results => {
+            res.json({data: results, type: 'direction-projects'});
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({response: "Internal server error!"});
+        });
 })
 /**
  * Accessor for objective information, given id
@@ -292,6 +335,7 @@ router.get('/get-objective', (req, res)=>{
 
     groupProjectInformation(projectIDinsert, distinctObjInsert, '', req.query.id)
         .then( result => {
+            result.type = 'objective';
             res.json(result);
         })
         .catch(err => {
@@ -306,28 +350,15 @@ router.get('/get-objective-projects', (req, res)=>{
     /**
      * @todo Handle errors 
      */
-    let projects = [];
-    MySQLLib.query(whereIDEscaped(tables.project, tables.project), [req.query.id])
+    let projectInsert = '= ?'  
+    MySQLLib.query(getProjects(projectInsert), req.query.id)
         .then(results => {
-            for( let i = 0; i < results.length; i++){
-                let project = {};
-                Object.keys(results[i]).forEach((key) =>{
-                    console.log(key);
-                    project[key] = result.key;
-                });
-                /**
-                 * @todo Get the rest of the project information
-                 */
-                projects.push(project);
-                res.json({response: 'Objective Projects Response'});
-            }
-
+            res.json({data: results, type: 'objective-projects'});
         })
         .catch(err => {
             console.error(err);
-            // Create Error
-            res.status(500).json({response: 'Internal Server Error'});
-        })
+            res.status(500).json({response: "Internal server error!"});
+        });
 })
 /**
  * Project accessor for mulitple or singular project
@@ -338,6 +369,133 @@ router.get('/get-project', (req, res) =>{
     /**
      * @todo Handle errors 
      */
+    let sql = `select
+    p.projectid as id,
+    p.name as name,
+    p.description as description,
+    (select p2.name from priority p2 where p2.priorityid in (
+          select d3.priorityid from direction d3 where d3.directionid in (
+                  select o.directionid from objective o where o.objectiveid = p.objectiveid 
+          ) 
+    )) as priority,
+    (select d2.name from direction d2 where d2.directionid in (
+          select o.directionid from objective o where o.objectiveid = p.objectiveid 
+    )) as direction, 
+    (select o.description from objective o where o.objectiveid = p.objectiveid) as objective,
+    (select d.name from department d where d.departmentid = p.owner) as owner,
+    (select t.name from projecttype t where t.typeid = p.projecttype) as projecttype,
+    p.budget as budget,
+    p.vision as vision, 
+    p.projectscope as porjectscope,
+    p.weight as weight,
+    p.survery as survey
+    from project p 
+    where p.projectid = ?;`;
+    // Can't use the same promise as when getting direction, objetive, and priority, we need different information
+    let project;
+    let strategic = [], supporters = [], stakeholder = [], budgetBreak = [], projectKPI = [], milestones = []; 
+    MySQLLib.query(sql, req.query.id)
+        .then(results => {
+            if (results.length > 1){
+                throw Error('Error: Too many projects matching id.');
+            }
+            project = results[0];
+            // Get strategic KPI
+            sql = `select sk.kpi
+            from strategickpi sk 
+            where sk.kpiid in (
+                select psk.strategickpiid 
+                from projectstrategickpi psk
+                where psk.projectid = ?
+            );`;
+            return MySQLLib.query(sql, req.query.id);
+        })
+        .then(results=> {
+            strategic = results;
+            // Get supporter information
+            sql =  `select 
+            (select d.name from department d where d.departmentid = s.departmentid) as dept,
+            s.supportrole as supportrole
+            from supporter s 
+            where s.projectid = ?`;
+            return MySQLLib.query(sql, req.query.id);
+        })
+        .then(results=> {
+            results.forEach(value => {
+                // Push the values into the array
+                supporters.push({name: value.dept, role: value.supportrole});
+            });
+            // Get stakeholder information
+            sql =  `select
+            s.companyid,
+            s.departmentid,
+            case when s.departmentid is not null then d.name else c.name end as name
+            from stakeholder s 
+            left join department d on s.departmentid = d.departmentid
+            left join company c on s.companyid = c.companyid
+            where s.projectid = 1 
+            group by s.companyid , s.departmentid;`;
+            return MySQLLib.query(sql, req.query.id);
+        })
+        .then(results=> {
+            results.forEach(value => {
+                // Push the values into the array
+                let type = 'dept';
+                if (value.departmentid == null){
+                    type = 'comp';
+                }
+                stakeholder.push({
+                    name: value.name,
+                    id: value.companyid || value.departmentid,
+                    type: type
+                });
+            });
+            // Get budget breakdown 
+            sql =  'select b.bddescr, b.bdamount from budgetbreakdown b where b.projectid = ?;';
+            return MySQLLib.query(sql, req.query.id);
+        })
+        .then(results=> {
+            results.forEach(value => {
+                // Push the values into the array
+                budgetBreak.push({
+                    description: value.bddescr,
+                    amount: value.bdamount
+                });
+            });
+            // Get Project specific KPIs
+            sql =  'select p.kpi from projectkpi p where p.projectid = ?;';
+            return MySQLLib.query(sql, req.query.id);
+        })
+        .then(results=> {
+            projectKPI = results;
+            // Get milestones
+            sql =  'select m.description, m.startdate , m.deadline from milestone m where m.projectid = ?;';
+            return MySQLLib.query(sql, req.query.id);
+        })
+        .then(results=> {
+            results.forEach(value => {
+                milestones.push({
+                    description: value.description,
+                    start: value.startdate,
+                    deadline: value.deadline
+                });
+            });
+            let returnable = {
+                project: project,
+                strategicKPI: strategic,
+                supporters: supporters,
+                stakeholders: stakeholder,
+                budgetBreakDown: budgetBreak,
+                projectKPI: projectKPI,
+                milestones: milestones 
+            }
+            res.json({data: returnable, type: 'project'});
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({response: 'Internal Server Error'});
+        });
+
 });
 
 module.exports = router;

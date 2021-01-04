@@ -27,6 +27,11 @@ body
     background-color: red;
 }
 
+#main-container
+{
+    padding:0.5em 0.5em;
+}
+
 #priority-list,
 #direction-list
 {
@@ -37,6 +42,7 @@ body
 {
     list-style-type: none;
     padding: 0;
+    margin: 0;
 }
 
 .generic-list-item
@@ -51,10 +57,6 @@ body
     background-color: blue;
 }
 
-td
-{
-    border: 1px solid black;
-}
 
 #priority-breakdown,
 #direction-breakdown
@@ -79,9 +81,14 @@ td
 
 }
 
-#project-info
+#project-info div 
 {
-    justify-content: space-between;
+    padding: 1em 1em;
+}
+
+.right-table
+{
+    border: 1px solid black;
 }
 
 #project-info-right
@@ -91,23 +98,77 @@ td
 
 #project-info-left
 {
-    flex: 2 1 0;
+    flex: 1.25 1 0;
     min-width: 26em;
 }
 
+#project-info
+{
+    padding: 0.5em
+}
+
 #project-info div, 
-#project-detailed-info div
+#project-detailed-info div,
+#milestone-table
 {
     padding: 0.25em;
 }
+
 
 .type-overview
 {
     min-width: 8em;
     margin-right: 0.25em;
+    display: grid;
+    place-items: center;
+}
+
+#vision,
+#scope
+{
+    width: 100%;
 }
 
 .right-table
 {
+    width: 100%;
     min-width: 11em;
+    border: 1px solid black;
+    border-radius: 0.25em;
+}
+
+
+td,
+#vision,
+#scope,
+.type-overview,
+.right-table,
+#project-info div,
+#strategic-kpi,
+#project-kpi,
+#stakeholders,
+#milestone-table
+{
+    border: 1px solid black;
+    border-radius: 0.25em;
+}
+
+#strategic-kpi,
+#project-kpi,
+#stakeholders
+{
+    display: grid;
+    place-items: center;
+    text-align: justify;
+}
+
+.stakeholder
+{
+    border: 1px solid lightblue;
+    width: 100%;
+}
+
+#milestone-table
+{
+    width: 100%;
 }

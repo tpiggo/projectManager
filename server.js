@@ -23,7 +23,7 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
     cookie: {
-        maxAge: 60000
+        maxAge: 60*60000//one hour
     }
 }));
 // Setting static parameters

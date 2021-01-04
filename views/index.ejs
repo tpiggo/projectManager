@@ -1,27 +1,6 @@
-
-<!-- Navbar -->
-<nav id="main-nav">
-    <div id='left-nav'>
-        <a class="nav-item" href="/">Home</a>
-        <% for(let element of renderable) { %>
-            <div class="nav-item" type="priority" onclick="clickableElement(event, this,  <%= element.id %> )" ><%= element.name %> Priorities</div>
-        <% } %> 
-        <div class="nav-item">Strategic Enablers</div>
-        <div class="nav-item">
-            <!-- Search Box -->
-            Searchable Box
-        </div>
-    </div>
-    <div class='nav-item' id="user-wrap">
-        <!-- User Box -->
-        User image
-    </div>
-</nav>
 <!-- Body-->
 <div id="main-container">
     <h1>Welcome</h1>
     <h2>This is the home page</h2>
 </div>
 <!-- Footer -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-<script type="text/javascript" src="/js/frontendAPI.js"></script>

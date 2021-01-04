@@ -1,0 +1,40 @@
+<h3>Dashboard</h3>
+<div id="bd-example" role="tabpanel">
+    <div class="row">
+        <div class="col-4">
+            <div class="list-group" id="list-tab" role="tablist">
+            <a class="list-group-item list-group-item-action active" id="list-home-list" data-bs-toggle="list" href="#list-home" role="tab" aria-controls="home">Home</a>
+            <% if (userLevel > 1) {%>
+                <a class="list-group-item list-group-item-action" id="list-user-manip-list" data-bs-toggle="list" href="#list-user-manip" role="tab" aria-controls="user-manip">Access Users</a>
+            <% } %>    
+            <a class="list-group-item list-group-item-action" id="list-messages-list" data-bs-toggle="list" href="#list-messages" role="tab" aria-controls="messages">Messages</a>
+            <a class="list-group-item list-group-item-action" id="list-settings-list" data-bs-toggle="list" href="#list-settings" role="tab" aria-controls="settings">Settings</a>
+            </div>
+        </div>
+        <div class="col-8">
+            <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="list-home" role="tabpanel" aria-labelledby="list-home-list">
+                Welcome <%= user %>. How can we help you today?<br>
+                Choose one of the elements on the left for some features within this web application!
+            </div>
+            <% if (userLevel > 1) {%>
+                <div class="tab-pane fade" id="list-user-manip" role="tabpanel" aria-labelledby="list-user-manip-list">
+                    <div id='slideables'>
+                        <button type="button" class="btn btn-outline-secondary">Create User</button>
+                        <button type="button" class="btn btn-outline-secondary">Update User</button>
+                    </div>
+                    <div id="manip-content">
+                        Here we are giving you the option of creating, accessing, deleting users.
+                    </div>
+                </div>
+            <% } %> 
+            <div class="tab-pane fade" id="list-messages" role="tabpanel" aria-labelledby="list-messages-list">
+                Check out your latest messages!!
+            </div>
+            <div class="tab-pane fade" id="list-settings" role="tabpanel" aria-labelledby="list-settings-list">
+                These are your user settings!
+            </div>
+            </div>
+        </div>
+    </div>
+</div>

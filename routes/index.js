@@ -1,3 +1,7 @@
+const { rejects } = require('assert');
+const { get } = require('https');
+const { resolve } = require('path');
+
 var express = require('express'),
     path = require('path'),
     router = express.Router(),
@@ -7,17 +11,10 @@ var express = require('express'),
     bodyParser = require('body-parser'),
     { isAuthenticated } = require('../middleware/authenicator');
 
-
-router.use(bodyParser.json());    
-/**
- * Request for homepage
- */
-router.get('/', (req, res) => {
-    // Get a connection to the DB and get the required information for the frontend functions
-    MySQLLib.getConnection((err, conn)=>{
-        // Connection is a Pool type but I can't get the pool type to be returned
-        conn.query(`SELECT * FROM priority`, (err, results) =>{
-            if (err) throw err;
+function getPriorities(){
+    return new Promise((resolve, reject) =>  {
+        MySQLLib.query('SELECT * FROM priority')
+        .then(results =>  {
             let elements = []
             
             for (let result of results){
@@ -27,15 +24,37 @@ router.get('/', (req, res) => {
             elements.sort((a,b) =>{
                 return a.id - b.id;
             });
-            console.log(elements, results);
-            return res.render('index', {renderable: elements});
+            resolve(elements);
+        })
+        .catch(err => rejects(err));
+    }); 
+}
+
+router.use(bodyParser.json());    
+/**
+ * Request for homepage
+ */
+router.get('/', (req, res) => {
+    // Get a connection to the DB and get the required information for the frontend functions
+    getPriorities()
+        .then(result => {
+            res.render('index', {renderable: result, scripts: ['https://cdn.jsdelivr.net/npm/chart.js@2.8.0','/js/frontendAPI.js']});
+        })
+        .catch(err=> {
+            console.error(err);
+            res.status(500).send("ERROR!");
         });
-    })
 });
 
 // Render the login page
 router.get('/login', (req, res) => {
-    res.render('login');
+    getPriorities()
+        .then(result => {
+            res.render('login', {renderable: result, scripts: ['/js/login.js']});
+        })
+        .catch(err => {
+
+        })
 });
 
 
@@ -71,7 +90,18 @@ router.post('/login', (req, res) => {
 });
 
 router.get('/dashboard', isAuthenticated, (req, res) => {
-    res.send(`You made it ${req.session.username}`);
+    Promise.all([
+        getPriorities(),
+        MySQLLib.query("select ulevel from users where username=?", req.session.username)
+    ])
+        .then(results => {
+            res.render('dashboard', {renderable: results[0], user: req.session.username, userLevel: results[1][0].ulevel, scripts: ['/js/dashboard.js', '/js/handler.js']});
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/');
+        })
+    
 });
 
 

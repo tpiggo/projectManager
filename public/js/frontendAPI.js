@@ -255,9 +255,9 @@ function createLeftProjectBox(...innerDivs){
                 innerDiv.className = 'left-right-table';
                 let svDiv = document.createElement('div');
                 svDiv.id = 'scope-vision';
-                innerDiv.innerHTML = `<div id='project-type-text' class='type-overview'>Type: ${child.left}</div>`;
-                svDiv.innerHTML += `<div id='vision'>Vision: ${child.list[0]==undefined?'None':child.list[0]}</div>`;
-                svDiv.innerHTML += `<div id='scope'>Scope: ${child.list[1]==undefined?'None':child.list[1]}</div>`;
+                innerDiv.innerHTML = `<div id='project-type-text' class='type-overview'>${child.left}</div>`;
+                svDiv.innerHTML += `<div id='vision'>${child.list[0]==undefined?'None':child.list[0]}</div>`;
+                svDiv.innerHTML += `<div id='scope'>${child.list[1]==undefined?'None':child.list[1]}</div>`;
                 innerDiv.appendChild(svDiv);
                 box.appendChild(innerDiv);
             } else if (child.type == 'owner' || child.type == 'budget') {
@@ -280,8 +280,7 @@ function createLeftInnerDiv(data){
     let innerDiv = document.createElement('div');
     let info = data.type=='budget'?['budget', 'budget breakdown','description','amount']:['department', 'supporters', 'name', 'role'];
     innerDiv.className = data.className;
-    let capitalized = data.type.slice(0,1).toUpperCase() + data.type.slice(1);
-    innerDiv.innerHTML = `<div id='${info[0]}' class='type-overview'>${capitalized}: ${data.left}</div>`;
+    innerDiv.innerHTML = `<div id='${info[0]}' class='type-overview'>${data.left}</div>`;
     if ( data.list.length < 1){
         innerDiv.innerHTML = `<div id='supporters'><b>No ${info[1]} found!!</b></div>`;
     } else {
@@ -421,13 +420,13 @@ function replaceLeftProjectBox(...innerDivs){
         for (let child of innerDivs){
             if (child.type == 'type'){
                 let element = document.getElementById('project-type-text');
-                element.innerHTML = `Type: ${child.left}`;
+                element.innerHTML = child.left;
                 element = element.nextElementSibling.firstChild;
                 console.log(element);
-                element.innerHTML = `Vision: ${child.list[0]!=undefined?child.list[0]:'None'}`;
+                element.innerHTML = child.list[0]!=undefined?child.list[0]:'None';
                 element = element.nextElementSibling;
                 console.log(element);
-                element.innerHTML = `Scope: ${child.list[1]!=undefined?child.list[1]:'None'}`;
+                element.innerHTML = child.list[1]!=undefined?child.list[1]:'None';
             } else if (child.type == 'owner' || child.type == 'budget') {
                 let element, onclick = '';
                 let info = [];
@@ -443,8 +442,7 @@ function replaceLeftProjectBox(...innerDivs){
                     info = ['budget-breakdown','description','amount'];
                 }
                 console.log(element, tableContainers);
-                let capitalize = child.type.slice(0,1).toUpperCase() + child.type.slice(1);
-                element.innerHTML = `${capitalize}: ${child.left}`;
+                element.innerHTML = child.left;
                 element = element.nextElementSibling.firstChild;
                 removeChildren(element, 0);
                 for (let data of child.list){

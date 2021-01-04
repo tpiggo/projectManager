@@ -1,16 +1,18 @@
 
 <!-- Navbar -->
 <nav id="main-nav">
-    <a class="nav-item" href="/">Home</a>
-    <% for(let element of renderable) { %>
-        <button class="nav-item" type="priority" onclick="clickableElement(event, this,  <%= element.id %> )" ><%= element.name %> Priorities</button>
-    <% } %> 
-    <button class="nav-item">Strategic Enablers</button>
-    <button class="nav-item">
-        <!-- Search Box -->
-        Searchable Box
-    </button>
-    <div id="user-wrap">
+    <div id='left-nav'>
+        <a class="nav-item" href="/">Home</a>
+        <% for(let element of renderable) { %>
+            <div class="nav-item" type="priority" onclick="clickableElement(event, this,  <%= element.id %> )" ><%= element.name %> Priorities</div>
+        <% } %> 
+        <div class="nav-item">Strategic Enablers</div>
+        <div class="nav-item">
+            <!-- Search Box -->
+            Searchable Box
+        </div>
+    </div>
+    <div class='nav-item' id="user-wrap">
         <!-- User Box -->
         User image
     </div>

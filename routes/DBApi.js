@@ -386,7 +386,7 @@ router.get('/get-project', (req, res) =>{
     (select t.name from projecttype t where t.typeid = p.projecttype) as projecttype,
     p.budget as budget,
     p.vision as vision, 
-    p.projectscope as porjectscope,
+    p.projectscope as scope,
     p.weight as weight,
     p.survery as survey
     from project p 
@@ -433,7 +433,7 @@ router.get('/get-project', (req, res) =>{
             from stakeholder s 
             left join department d on s.departmentid = d.departmentid
             left join company c on s.companyid = c.companyid
-            where s.projectid = 1 
+            where s.projectid = ? 
             group by s.companyid , s.departmentid;`;
             return MySQLLib.query(sql, req.query.id);
         })
@@ -485,7 +485,7 @@ router.get('/get-project', (req, res) =>{
                 strategicKPI: strategic,
                 supporters: supporters,
                 stakeholders: stakeholder,
-                budgetBreakDown: budgetBreak,
+                budgetBreakdown: budgetBreak,
                 projectKPI: projectKPI,
                 milestones: milestones 
             }

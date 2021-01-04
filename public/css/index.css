@@ -1,8 +1,113 @@
-#main-nav{
-    display: block;
+body
+{
+    margin: 0;
+}
+#main-nav
+{
+    display: flex;
+    justify-content: space-between;
+    background-color: black;
+    
 }
 
-#priority-breakdown{
+#left-nav
+{
+    display: flex;
+}
+
+.nav-item
+{
+    color: white;
+    background-color: black;
+    padding: 1em;
+}
+
+.nav-item:hover
+{
+    background-color: red;
+}
+
+#priority-list,
+#direction-list
+{
+    background-color: lightblue;
+}
+
+.generic-list
+{
+    list-style-type: none;
+    padding: 0;
+}
+
+.generic-list-item
+{
+    padding: 1em 1em;
+    border: 1px black solid;
+    border-radius: 0.5em;
+}
+
+.generic-list-item.active
+{
+    background-color: blue;
+}
+
+td
+{
+    border: 1px solid black;
+}
+
+#priority-breakdown,
+#direction-breakdown
+{
     display: grid;
     grid-template-columns: minmax(150px, 20%) 1fr;
+}
+
+#priority-projects,
+#direction-projects,
+#objective-projects
+{
+    display: grid;
+    grid-template-columns: minmax(150px, 25%) 1fr;
+}
+
+.left-right-table,
+#project-detailed-info,
+#project-info
+{
+    display: flex;
+
+}
+
+#project-info
+{
+    justify-content: space-between;
+}
+
+#project-info-right
+{
+    flex: 1 1 0;
+}
+
+#project-info-left
+{
+    flex: 2 1 0;
+    min-width: 26em;
+}
+
+#project-info div, 
+#project-detailed-info div
+{
+    padding: 0.25em;
+}
+
+.type-overview
+{
+    min-width: 8em;
+    margin-right: 0.25em;
+}
+
+.right-table
+{
+    min-width: 11em;
 }

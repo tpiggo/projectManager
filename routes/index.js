@@ -38,7 +38,12 @@ router.get('/', (req, res) => {
     // Get a connection to the DB and get the required information for the frontend functions
     getPriorities()
         .then(result => {
-            res.render('index', {renderable: result, scripts: ['https://cdn.jsdelivr.net/npm/chart.js@2.8.0','/js/frontendAPI.js']});
+            res.render('index', {
+                renderable: result,
+                scripts: ['https://cdn.jsdelivr.net/npm/chart.js@2.8.0','/js/frontendAPI.js'],
+                authenticated: req.session.authenticated,
+                user: req.session.username
+            });
         })
         .catch(err=> {
             console.error(err);
@@ -50,10 +55,15 @@ router.get('/', (req, res) => {
 router.get('/login', (req, res) => {
     getPriorities()
         .then(result => {
-            res.render('login', {renderable: result, scripts: ['/js/login.js']});
+            res.render('login', {
+                renderable: result,
+                scripts: ['/js/login.js'],
+                user: req.session.username,
+                authenticated: false
+            });
         })
         .catch(err => {
-
+            console.error(err);
         })
 });
 
@@ -92,10 +102,25 @@ router.post('/login', (req, res) => {
 router.get('/dashboard', isAuthenticated, (req, res) => {
     Promise.all([
         getPriorities(),
-        MySQLLib.query("select ulevel from users where username=?", req.session.username)
+        MySQLLib.query("select ulevel from users where username=?", req.session.username),
+        MySQLLib.query('select username as name, userid as id from users')
     ])
         .then(results => {
-            res.render('dashboard', {renderable: results[0], user: req.session.username, userLevel: results[1][0].ulevel, scripts: ['/js/dashboard.js', '/js/handler.js']});
+            let users = [];
+            results[2].forEach(value => {
+                if ( value.name != req.session.username ){
+                    users.push({name: value.name, id: value.id});
+                }
+            });
+
+            res.render('dashboard', {
+                renderable: results[0],
+                user: req.session.username, 
+                userLevel: results[1][0].ulevel,
+                users: users,
+                scripts: ['/js/dashboard.js', '/js/handler.js'],
+                authenticated: true
+            });
         })
         .catch(err => {
             console.error(err);

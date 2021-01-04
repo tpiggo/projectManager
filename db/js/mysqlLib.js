@@ -14,7 +14,7 @@ let poolOptions = {
 var pool = mysql.createPool(poolOptions);
 /**
  * retrieve a connection and execute a callback function on the DB connection
- * @param {Function} callback
+ * @param {(err: Error, connection: mysql.PoolConnection)} callback
  */
 exports.getConnection = function (callback){
     pool.getConnection((err, connection)=>{
@@ -52,10 +52,56 @@ exports.query = function(query, input=null){
     });
 }
 
+function getFields(tablename){
+    return new Promise((resolve, reject) => {
+        this.query(`show columns from ${tablename}`)
+            .then(result => {
+                let fields = [];
+                result.forEach(value => {
+                    fields.push(value.Field);
+                });
+                resolve(fields);
+            })
+            .catch(err => reject(err));
+    });
+}
+
+/**
+ * 
+ * @param {String} query 
+ * @param {Array<String>} insertables 
+ */
+exports.insert = function (query, insertables) {
+    return new Promise((resolve) => {
+        pool.getConnection((err, conn) =>{
+            if (err) throw err;
+            conn.beginTransaction((err)=>{
+                if (err) throw err;
+                conn.query(query, insertables, (err, result) => {
+                    if (err) {
+                        conn.rollback(()=>{
+                            throw err;
+                        });
+                    }
+                    conn.commit((err) =>{
+                        if (err) {
+                            conn.rollback(()=>{
+                                throw err;
+                            });
+                        }
+                        conn.release();
+                        resolve(result);
+                    });
+                });
+            });
+        })
+    });
+}
+
 /**
  * The tables are statically bound. 
  */
-exports.accessableTables =   {
+let accessableTables =   {
     budgetbreakdown: 'budgetbreakdown',
     company: 'company',
     department: 'department',

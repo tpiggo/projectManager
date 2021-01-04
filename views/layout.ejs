@@ -6,6 +6,7 @@
         <title>Project Manager</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="/css/index.css">
+        <script type="text/javascript" src="/js/popups.js"></script>
     </head>
     <body>
         <!-- Navbar -->
@@ -29,7 +30,13 @@
                     </svg>
             </a>
             <div id="user-info" class="dropdown-menu" aria-labelledby="UserMenu" role="menu">
-                <li><a class="dropdown-item" id="login" href="/login">Login</a></li>
+                <% if (authenticated) { %>
+                    <li class="dropdown-item"><%= "Hi, " + user %></li>
+                    <li><a class="dropdown-item" id="dashboard" href="/dashboard">Dashboard</a></li>
+                    <li><a class="dropdown-item" id="logout" href="/logout">Logout</a></li>
+                <% } else { %>
+                    <li><a class="dropdown-item" id="login" href="/login">Login</a></li>
+                <% } %>
             </div>
         </nav>
         <%- body %> 

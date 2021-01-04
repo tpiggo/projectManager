@@ -1,11 +1,11 @@
 const express = require('express');
+const { isAuthenticated } = require('../middleware/authenicator');
 var router = express.Router(),
     MySQLLib = require('../db/js/mysqlLib'),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    bcrypt = require('bcrypt');
 
-
-var tables = MySQLLib.accessableTables;   
-
+router.use(bodyParser.json()); 
 /**
  * @description Building where query given a type and id. Not safe or user input
  * @param {String} table 
@@ -496,6 +496,44 @@ router.get('/get-project', (req, res) =>{
             res.status(500).json({response: 'Internal Server Error'});
         });
 
+});
+
+// User creation, put, deletion and updating routes!
+router.post('/create-user', isAuthenticated, (req, res)=> {
+    console.log(req.body);
+    let sql = 'insert into users (username, upass, email, ulevel) values (?)';
+    bcrypt.genSalt(12)
+        .then(result => {
+            // result is the salt
+            return bcrypt.hash(req.body.pass, result)
+        })
+        .then(encPass => {
+            let user = [req.body.username, encPass, req.body.email, req.body.userLevel];
+            return MySQLLib.query(sql, [user])
+        })
+        .then(result => {  
+            console.log(result)
+            res.json({response: 'Successfully added!'});
+        })
+        .catch(err=> {
+            console.log(err);
+            if (err.code != undefined && err.code == 'ER_DUP_ENTRY'){
+                let msg = '';
+                switch (err.sqlMessage){
+                    case err.sqlMessage.includes('username'):
+                        msg = msg.concat('Username already exists!');
+                        break;
+                    case err.sqlMessage.includes('email'):
+                        msg = msg.concat('Email already exists!');
+                        break;
+                    default:
+                        msg = msg.concat('User already exists!');
+                        break;
+                }
+                return res.status(400).json({err: msg});
+            }
+            res.status(500).json({errorMessage: "Internal server error"});
+        });
 });
 
 module.exports = router;

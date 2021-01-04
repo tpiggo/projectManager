@@ -1,6 +1,6 @@
 <h3>Dashboard</h3>
-<div id="bd-example" role="tabpanel">
-    <div class="row">
+<div id='list-group'>
+    <div class="row" style="width: 100%;">
         <div class="col-4">
             <div class="list-group" id="list-tab" role="tablist">
             <a class="list-group-item list-group-item-action active" id="list-home-list" data-bs-toggle="list" href="#list-home" role="tab" aria-controls="home">Home</a>
@@ -11,30 +11,131 @@
             <a class="list-group-item list-group-item-action" id="list-settings-list" data-bs-toggle="list" href="#list-settings" role="tab" aria-controls="settings">Settings</a>
             </div>
         </div>
-        <div class="col-8">
+        <div class="col-8" style="padding: 0">
             <div class="tab-content" id="nav-tabContent">
-            <div class="tab-pane fade show active" id="list-home" role="tabpanel" aria-labelledby="list-home-list">
-                Welcome <%= user %>. How can we help you today?<br>
-                Choose one of the elements on the left for some features within this web application!
+            <div class="tab-pane fade show active card card-body" id="list-home" role="tabpanel" aria-labelledby="list-home-list">
+                <div class="card-body">
+                    <div class="card-text">
+                        Welcome <%= user %>. How can we help you today?<br>
+                        Choose one of the elements on the left for some features within this web application!
+                    </div>
+                </div>
             </div>
             <% if (userLevel > 1) {%>
-                <div class="tab-pane fade" id="list-user-manip" role="tabpanel" aria-labelledby="list-user-manip-list">
+                <div class="tab-pane fade card card-body" id="list-user-manip" role="tabpanel" aria-labelledby="list-user-manip-list">
+                    <style>
+                        #slideables
+                        {
+                            display:flex; 
+                            justify-content: space-around;
+                            align-items:center;
+                            padding-bottom: 2em;
+                        }
+                        #create-user-btn,
+                        #update-user-btn
+                        {
+                            width:15em;
+                        }
+                    </style>
                     <div id='slideables'>
-                        <button type="button" class="btn btn-outline-secondary">Create User</button>
-                        <button type="button" class="btn btn-outline-secondary">Update User</button>
+                        <button type="button" class="btn btn-outline-secondary" id="create-user-btn" data-bs-toggle="modal"  data-bs-target="#createUser">Create User</button>
+                        <button type="button" class="btn btn-outline-secondary" id="update-user-btn"  data-bs-toggle="modal"  data-bs-target="#updateUser">Update User</button>
                     </div>
-                    <div id="manip-content">
+                    <div class="card-text" id="manip-content">
                         Here we are giving you the option of creating, accessing, deleting users.
                     </div>
                 </div>
             <% } %> 
-            <div class="tab-pane fade" id="list-messages" role="tabpanel" aria-labelledby="list-messages-list">
+            <div class="tab-pane fade card card-body" id="list-messages" role="tabpanel" aria-labelledby="list-messages-list">
                 Check out your latest messages!!
             </div>
-            <div class="tab-pane fade" id="list-settings" role="tabpanel" aria-labelledby="list-settings-list">
+            <div class="tab-pane fade card card-body" id="list-settings" role="tabpanel" aria-labelledby="list-settings-list">
                 These are your user settings!
             </div>
             </div>
         </div>
     </div>
+    <% if (userLevel > 1) {%>
+    <div class="modal fade" id="createUser" data-bs-backdrop="static" tabindex="-1" aria-labelledby="createUserTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createUserTitle">Create User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='input-box'>
+                        <label for="username">Username:</label>
+                        <input type="text" name='username' id="username" placeholder="Username">
+                    </div>
+                    <div class="input-box">
+                        <label for="password">Password:</label>
+                        <input type="password" name='pass' id="pass" placeholder="Password">
+                    </div>
+                    <div class="input-box">
+                        <label for="confirm-password">Confirm Password:</label>
+                        <input type="password" name='confirm-pass' id="confirmPass" placeholder="Confirm Password">
+                    </div>
+                    <div class="input-box">
+                        <label for="email">Email:</label>
+                        <input type="email" name='email' id="email" placeholder="example@example.com">
+                    </div>
+                    <div class="input-box">
+                        <label for="ulevel">Clearance:</label>
+                        <input type="number" name='ulevel' id="userLevel" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="createUser(event, this)">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" class="modal fade" id="updateUser" data-bs-backdrop="static" tabindex="-1" aria-labelledby="updateUserTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateUserTitle">Update User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='input-box'>
+                        <select name="users" id="users" onchange="getUser(this)">
+                            <option name='default'>Please Choose a User!</option>
+                            <% for ( let user of users) { %>
+                                <option id=<%= user.id %>><%= user.name  %> </option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class='input-box'>
+                        <label for="username">Username:</label>
+                        <input type="text" name='username' id="updateUsername" placeholder="Username">
+                    </div>
+                    <div class="input-box">
+                        <label for="password">Password:</label>
+                        <input type="password" name='pass' id="updatePass" placeholder="Password">
+                    </div>
+                    <div class="input-box">
+                        <label for="confirm-password">Confirm Password:</label>
+                        <input type="password" name='confirm-pass' id="updateConfirmPass" placeholder="Confirm Password">
+                    </div>
+                    <div class="input-box">
+                        <label for="email">Email:</label>
+                        <input type="email" name='email' id="updateEmail" placeholder="example@example.com">
+                    </div>
+                    <div class="input-box">
+                        <label for="ulevel">Clearance:</label>
+                        <input type="number" name='ulevel' id="updateUserLevel" value="0">
+                    </div>
+                    <input id='id' value='0' style="display: none;">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="updateUser(event, this)">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% } %> 
 </div>

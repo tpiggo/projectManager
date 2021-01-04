@@ -8,5 +8,5 @@
  * @param {Number} id 
  */
 function clickableElement(event, target, id){
-    console.log("Do nothing");
+    window.location.href = '/#pid='+id;
 }

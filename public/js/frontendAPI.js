@@ -5,6 +5,22 @@ var current = {type: null, id: null};
  */
 
 
+ /**
+  * Handle if we are returning from another page and need to render something
+  */
+ window.onload = function (){
+    let toGet = window.location.hash.replace("#", "");
+    if (toGet.includes('pid')){
+        let id = Number(toGet.split("=")[1])
+        // get the projects
+        clickableElement(
+            null,
+            document.getElementsByClassName('nav-item')[id],
+            id
+        );
+    } // Handle the rest
+ }
+
 /**
  * @description Calling the backend to get data from the specified URL with formatted string
  * @param {Event} event 

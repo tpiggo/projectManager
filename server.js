@@ -39,6 +39,7 @@ const HTTPSPORT = 8443;
 
 app.use('/', require('./routes/index'));
 app.use('/DBApi', require('./routes/DBApi'));
+app.use('/fetchable', require('./routes/fetchable'));
 
 // Not useful. Need these in apache
 const options = {

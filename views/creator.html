@@ -1,0 +1,164 @@
+<h1 id="title"> Create new Project</h1>
+<div id="editor-create"> 
+    <div id="categories-container">
+        <label for="priority">Priority: </label>
+        <select id="priorities" name="priority" type="priority" onchange="getSubSelected(this)">
+            <option value="default" selected="selected">Choose a priority</option>
+        </select>
+        <label for="direction">Direction: </label>
+        <select id="directions" name="direction" type="direction" name="direction" onchange="getSubSelected(this)">
+            <option value="default" selected="selected">Choose a direction</option>
+        </select> 
+        <label for="objective">Objective: </label>
+        <select id="objectives" name="objective" type="objective">
+            <option value="default" selected="selected">Choose an objective</option>
+        </select>
+    </div>
+    <div>
+        <label for="name">Project Name:</label>
+        <input type="text" name="name" placeholder="Name">
+    </div>
+    <div id="type-vs-container">
+        <div class="container-header">
+            Type, Vision and Scope
+        </div>
+        <div>
+            <label for="projectType">Type:</label>
+            <select id="projectTypes" name="projectType" type="projectType" onchange="selectedType(this)">
+                <option value="default" selected="selected">Choose a type</option>
+            </select>
+            <label for="vision">Vision:</label>
+            <textarea name="vision" placeholder="Vision"></textarea>
+            <label for="scope">Scope:</label>
+            <textarea name="vision" placeholder="Scope"></textarea>
+        </div>
+    </div>
+    <div id="owners-supporters-container">
+        <div id="owner-supporter-header" class="container-header">
+            <h3>Owner and Supporters</h3>
+        </div>
+        <div>
+            <div>
+                <label for="owner">Owner:</label>
+                <select id="owner" name="owner" type="department" onchange="selectedDepartment(this)">
+                    <option value="default" selected="selected">Choose a department</option>
+                </select>
+            </div>
+            <div>
+                <div class="supporter-input">
+                    <label for="supporter">Supporter:</label>
+                    <select id="supporters" name="supporter" type="department">
+                        <option value="default" selected="selected">Choose a supporter!</option>
+                    </select>
+                    <a onclick="createExtra(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>   
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <div id="strategic-kpi-container">
+        <div id="strategic-kpi-header" class="container-header">
+            <h3>Strategic KPI</h3>
+        </div>
+        <div id="strategic-kpi-list-container">
+            <div id="strategic-kpi-input">
+                <label for="streategicKpi1">Strategic KPI:</label>
+                <select id="streategicKpi1" name="streategicKpi1" type="streategicKpi1" onchange="selectedDepartment(this)">
+                    <option value="default" selected="selected">Choose a KPI</option>
+                </select>
+                <a onclick="createExtra(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>   
+                </a>
+            </div>
+        </div>
+    </div>
+    <div id="project-kpi-container">
+        <div id='project-kpi-title' class="container-header">
+            <h3>Project KPI</h3>
+        </div>
+        <div id="project-kpi-list-container">
+            <div id="strategic-kpi-input">
+                <label for="projectKpi1">Project KPI:</label>
+                <textarea name="projectKpi1" placeholder="Porject Specific KPI"></textarea>
+                <a onclick="createExtra(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>   
+                </a>
+            </div>
+        </div>
+    </div>
+    <div id="stakeholder-container">
+        <div id='stakeholders-title' class="container-header">
+            <h3>Stakeholders</h3>
+        </div>
+        <div id="stakeholders-information-container">
+            <div class="stakeholders-input">
+                <label for="stakeholders">Stakeholder:</label>
+                <select id="stakeholders" name="stakeholder" type="stakeholder">
+                    <option value="default" selected="selected">Choose a supporter!</option>
+                </select>
+                <a onclick="createExtra(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>   
+                </a>
+            </div>
+        </div>
+    </div>
+    <div id="milestone-container">
+        <div id='milestone-title' class="container-header">
+            <h3>Milestones</h3>
+        </div>
+        <div id="milestones-breakdown-container">
+            <div class="milestone-input"> 
+                <label for="milestoneText1">Milestone:</label>
+                <textarea id="milestoneText1"></textarea>
+                <label for="milestoneStart1">Start:</label>
+                <input type="date" id="milestoneStart1" name="milestoneStart1">
+                <label for="milestoneDeadline1">Deadline:</label>
+                <input type="date" id="milestoneDeadline1" name="milestoneDeadline1">
+                <a onclick="createExtra(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>   
+                </a>
+            </div>
+        </div>
+    </div>
+    <div id="budget-container">
+        <div id='budget-title' class="container-header">
+            <h3>Budget</h3>
+        </div>
+        <div>
+            <div class="total-budget-title" >
+                <label for="budget">Budget:</label>
+                <input type="number" name="budget" placeholder="10000">
+            </div>
+            <div id="budget-breakdown-container">
+                <div class="input-budget-breakdown"> 
+                    <label for="budget">Budget Breakdown:</label>
+                    <input type="number" name="budget" id="budgetbreakdown1-num" placeholder="10000">
+                    <textarea id="budgetbreakdown1-text"></textarea>
+                    <a onclick="createExtra(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>   
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

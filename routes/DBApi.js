@@ -1,5 +1,5 @@
 const express = require('express');
-const { isAuthenticated } = require('../middleware/authenicator');
+const { isAuthenticated, asyncIsAuth } = require('../middleware/authenicator');
 var router = express.Router(),
     MySQLLib = require('../db/js/mysqlLib'),
     bodyParser = require('body-parser'),
@@ -533,6 +533,108 @@ router.post('/create-user', isAuthenticated, (req, res)=> {
                 return res.status(400).json({err: msg});
             }
             res.status(500).json({errorMessage: "Internal server error"});
+        });
+});
+
+/**
+ * Routing for direct information about priorities, directions, objectives, strategicKPIs and departments
+ */
+
+router.get('/get-priorities', asyncIsAuth, (req, res) => {
+    MySQLLib.query('Select priorityid as id, name from priority')
+        .then(results => {
+            // get the results and return them
+            res.json(results);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({error: "Internal server error!"});
+        })
+});
+
+
+router.get('/get-directions', asyncIsAuth, (req, res) => {
+    MySQLLib.query('select directionid as id, name from direction where priorityid=?', req.query.id)
+        .then(results => {
+            // get the results and return them
+            res.json(results);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({error: "Internal server error!"});
+        });
+});
+
+router.get('/get-objectives', asyncIsAuth, (req, res) => {
+    MySQLLib.query('select objectiveid as id, description as name from objective where directionid=?', req.query.id)
+        .then(results => {
+            // get the results and return them
+            res.json(results);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({error: "Internal server error!"});
+        });
+});
+
+router.get('/get-departments', asyncIsAuth, (req, res) => {
+    MySQLLib.query('Select departmentid as id, name from department')
+        .then(results => {
+            // get the results and return them
+            res.json(results);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({error: "Internal server error!"});
+        });
+});
+
+router.get('/get-strategic-kpis', asyncIsAuth, (req, res) => {
+    MySQLLib.query('Select kpiid as id, name from strategickpi where objectiveid=?', req.query.id)
+        .then(results => {
+            // get the results and return them
+            res.json(results);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({error: "Internal server error!"});
+        });
+});
+
+
+router.get('/get-stakeholders', asyncIsAuth, (req, res) => {
+    let sql =  `select 
+                c.companyid as id, 
+                name,
+                false as department 
+                from company c
+                union
+                select 
+                d.departmentid as id, 
+                name,
+                true as department 
+                from department d 
+                order by id ;`
+    MySQLLib.query(sql)
+        .then(results => {
+            // get the results and return them
+            res.json(results);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({error: "Internal server error!"});
+        });
+});
+
+router.get('/get-types', asyncIsAuth, (req, res) => {
+    MySQLLib.query('Select typeid as id, name from projecttype', req.query.id)
+        .then(results => {
+            // get the results and return them
+            res.json(results);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({error: "Internal server error!"});
         });
 });
 

@@ -15,14 +15,14 @@ body
     display: flex;
 }
 
-.nav-item
+.nav-item-nb
 {
     color: white;
     background-color: black;
     padding: 1em;
 }
 
-.nav-item:hover
+.nav-item-nb:hover
 {
     background-color: red;
 }
@@ -30,39 +30,6 @@ body
 #main-container
 {
     padding:0.5em 0.5em;
-}
-
-#priority-list,
-#direction-list
-{
-    background-color: lightblue;
-}
-
-.generic-list
-{
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-.generic-list-item
-{
-    padding: 1em 1em;
-    border: 1px black solid;
-    border-radius: 0.5em;
-}
-
-.generic-list-item.active
-{
-    background-color: blue;
-}
-
-
-#priority-breakdown,
-#direction-breakdown
-{
-    display: grid;
-    grid-template-columns: minmax(150px, 20%) 1fr;
 }
 
 #priority-projects,
@@ -171,4 +138,20 @@ td,
 #milestone-table
 {
     width: 100%;
+}
+
+#toolbar-top
+{
+    background-color:#332F81;
+}
+
+.list-group-item.list-group-item-action.hide-list-item
+{
+    display:none;
+}
+
+#dots-after-current,
+#dots-before-current
+{
+    text-align: center;
 }

@@ -40,7 +40,7 @@ router.get('/', (req, res) => {
         .then(result => {
             res.render('index', {
                 renderable: result,
-                scripts: ['https://cdn.jsdelivr.net/npm/chart.js@2.8.0','/js/frontendAPI.js'],
+                scripts: ['https://cdn.jsdelivr.net/npm/chart.js@2.8.0','/js/creator.js', '/js/index.js'],
                 authenticated: req.session.authenticated,
                 user: req.session.username
             });

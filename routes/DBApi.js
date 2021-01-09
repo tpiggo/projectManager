@@ -590,7 +590,7 @@ router.get('/get-departments', asyncIsAuth, (req, res) => {
 });
 
 router.get('/get-strategic-kpis', asyncIsAuth, (req, res) => {
-    MySQLLib.query('Select kpiid as id, name from strategickpi where objectiveid=?', req.query.id)
+    MySQLLib.query('Select kpiid as id, kpi as name from strategickpi where objectiveid=?', req.query.id)
         .then(results => {
             // get the results and return them
             res.json(results);

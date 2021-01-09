@@ -51,7 +51,7 @@ function loadEditor({html, scripts}){
 /**
  * @description Load functions dynamically asynchronously 
  * @param {String} pathToFile 
- * @param {Function} callBack 
+ * @param {Function} callback 
  */
 function loadScriptFile(pathToFile, callback){
     var scriptTag = document.createElement("script"); //creates a HTML script element
@@ -113,6 +113,12 @@ function createProjectEditor(target){
         })
         .then((results) =>{
             console.log("Creator Ready!");
+            let editor = main.children.namedItem('editor-create');
+            let btn = document.createElement('button');
+            btn.setAttribute('onclick', "createProject(this.parentElement)");
+            btn.innerHTML = 'Create Project'
+            btn.classList.add('btn', 'btn-primary');
+            editor.appendChild(btn);
             // Lock creator button
             target.classList.add('disabled');
         })

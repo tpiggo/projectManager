@@ -10,11 +10,11 @@
             <option value="default" selected="selected">Choose a direction</option>
         </select> 
         <label for="objective">Objective: </label>
-        <select id="objectives" name="objective" type="objective">
+        <select id="objectives" name="objective" type="objective" onchange="getSubSelected(this)">
             <option value="default" selected="selected">Choose an objective</option>
         </select>
     </div>
-    <div>
+    <div id='project-name-container'>
         <label for="name">Project Name:</label>
         <input type="text" name="name" placeholder="Name">
     </div>
@@ -22,7 +22,7 @@
         <div class="container-header">
             Type, Vision and Scope
         </div>
-        <div>
+        <div id="tvs-input">
             <label for="projectType">Type:</label>
             <select id="projectTypes" name="projectType" type="projectType" onchange="selectedType(this)">
                 <option value="default" selected="selected">Choose a type</option>
@@ -37,20 +37,21 @@
         <div id="owner-supporter-header" class="container-header">
             <h3>Owner and Supporters</h3>
         </div>
-        <div>
-            <div>
+        <div id='owner-supporter-input-container'>
+            <div id="owner-container">
                 <label for="owner">Owner:</label>
-                <select id="owner" name="owner" type="department" onchange="selectedDepartment(this)">
+                <select id="owner" name="owner" type="owner" onchange="selectedElement(this)">
                     <option value="default" selected="selected">Choose a department</option>
                 </select>
             </div>
-            <div>
-                <div class="supporter-input">
-                    <label for="supporter">Supporter:</label>
-                    <select id="supporters" name="supporter" type="department">
+            <div id="supporters-container"> 
+                <div class="supporter-input" id="supporter1">
+                    <label for="supporter1">Supporter:</label>
+                    <select id="select-supporter1" name="supporter1" type="supporter" onchange="selectedElement(this)">
                         <option value="default" selected="selected">Choose a supporter!</option>
                     </select>
-                    <a onclick="createExtra(this)">
+                    <textarea type="supportRole" name="supporter1" placeholder="Supporters role!"></textarea>
+                    <a onclick="createInputSpace(this)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                             <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
@@ -66,12 +67,12 @@
             <h3>Strategic KPI</h3>
         </div>
         <div id="strategic-kpi-list-container">
-            <div id="strategic-kpi-input">
-                <label for="streategicKpi1">Strategic KPI:</label>
-                <select id="streategicKpi1" name="streategicKpi1" type="streategicKpi1" onchange="selectedDepartment(this)">
+            <div class="strategic-kpi-input" id="strategicKpi1">
+                <label for="strategicKpi1">Strategic KPI:</label>
+                <select id="select-strategicKpi1" name="strategicKpi1" type="strategicKpi" onchange="selectedElement(this)">
                     <option value="default" selected="selected">Choose a KPI</option>
                 </select>
-                <a onclick="createExtra(this)">
+                <a onclick="createInputSpace(this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
@@ -85,10 +86,10 @@
             <h3>Project KPI</h3>
         </div>
         <div id="project-kpi-list-container">
-            <div id="strategic-kpi-input">
+            <div class="project-kpi-input" id="projectKpi1">
                 <label for="projectKpi1">Project KPI:</label>
                 <textarea name="projectKpi1" placeholder="Porject Specific KPI"></textarea>
-                <a onclick="createExtra(this)">
+                <a onclick="createInputSpace(this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
@@ -102,12 +103,12 @@
             <h3>Stakeholders</h3>
         </div>
         <div id="stakeholders-information-container">
-            <div class="stakeholders-input">
-                <label for="stakeholders">Stakeholder:</label>
-                <select id="stakeholders" name="stakeholder" type="stakeholder">
-                    <option value="default" selected="selected">Choose a supporter!</option>
+            <div class="stakeholders-input" id="stakerholder1">
+                <label for="stakeholder1">Stakeholder:</label>
+                <select id="select-stakeholder1" name="stakeholder1" type="stakeholder">
+                    <option value="default" selected="selected">Choose a stakeholder!</option>
                 </select>
-                <a onclick="createExtra(this)">
+                <a onclick="createInputSpace(this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
@@ -121,14 +122,14 @@
             <h3>Milestones</h3>
         </div>
         <div id="milestones-breakdown-container">
-            <div class="milestone-input"> 
-                <label for="milestoneText1">Milestone:</label>
-                <textarea id="milestoneText1"></textarea>
+            <div class="milestone-input" id="milestone1"> 
+                <label for="milestoneText">Milestone:</label>
+                <textarea name="milestoneText"></textarea>
                 <label for="milestoneStart1">Start:</label>
-                <input type="date" id="milestoneStart1" name="milestoneStart1">
-                <label for="milestoneDeadline1">Deadline:</label>
-                <input type="date" id="milestoneDeadline1" name="milestoneDeadline1">
-                <a onclick="createExtra(this)">
+                <input type="date" name="milestoneStart">
+                <label for="milestoneDeadline">Deadline:</label>
+                <input type="date" name="milestoneDeadline">
+                <a onclick="createInputSpace(this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
@@ -141,17 +142,17 @@
         <div id='budget-title' class="container-header">
             <h3>Budget</h3>
         </div>
-        <div>
-            <div class="total-budget-title" >
+        <div id="total-budget-container">
+            <div class="total-budget-input" id='total-budget'>
                 <label for="budget">Budget:</label>
-                <input type="number" name="budget" placeholder="10000">
+                <input id="totalBudget" type="number" name="budget" placeholder="10000">
             </div>
             <div id="budget-breakdown-container">
-                <div class="input-budget-breakdown"> 
+                <div class="input-budget-breakdown" id="bbd1"> 
                     <label for="budget">Budget Breakdown:</label>
-                    <input type="number" name="budget" id="budgetbreakdown1-num" placeholder="10000">
-                    <textarea id="budgetbreakdown1-text"></textarea>
-                    <a onclick="createExtra(this)">
+                    <input type="number" name="budgetBreakdownAmount" placeholder="10000">
+                    <textarea name="budgetBreakdownText"></textarea>
+                    <a onclick="createInputSpace(this)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                             <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>

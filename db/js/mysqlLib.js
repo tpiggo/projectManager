@@ -31,7 +31,7 @@ exports.getConnection = function (callback){
  */
 exports.query = function(query, input=null){
     return new Promise((resolve, reject) =>{
-        this.getConnection((err, conn)=>{
+        pool.getConnection((err, conn)=>{
             if (err) reject(err);
             if (input == null){
                 conn.query(query, (err, result) =>{
@@ -72,22 +72,38 @@ function getFields(tablename){
  * @param {Array<String>} insertables 
  */
 exports.insert = function (query, insertables) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         pool.getConnection((err, conn) =>{
-            if (err) throw err;
+            if (err){
+                console.log('error1');
+                return reject(err);
+            };
             conn.beginTransaction((err)=>{
-                if (err) throw err;
+                if (err) {
+                    console.log('error2: rolling back');
+                    return reject(err);
+                }
                 conn.query(query, insertables, (err, result) => {
                     if (err) {
-                        conn.rollback(()=>{
-                            throw err;
+                        return conn.rollback((error)=>{
+                            if (error){ 
+                                console.log('error3: rolling back');
+                                return reject(error);
+                            }
+                            console.log('error4: rolling back');
+                            reject(err);
                         });
                     }
                     conn.commit((err) =>{
                         if (err) {
-                            conn.rollback(()=>{
-                                throw err;
-                            });
+                            return conn.rollback((error)=>{
+                                if (error){ 
+                                console.log('error5: rolling back');
+                                    return reject(error);
+                                }
+                                console.log('error6: rolling back');
+                                reject(err);
+                            });   
                         }
                         conn.release();
                         resolve(result);
@@ -97,27 +113,6 @@ exports.insert = function (query, insertables) {
         })
     });
 }
-
-/**
- * The tables are statically bound. 
- */
-let accessableTables =   {
-    budgetbreakdown: 'budgetbreakdown',
-    company: 'company',
-    department: 'department',
-    direction: 'direction',
-    milestone: 'milestone',
-    objective: 'objective',
-    priority: 'priority',
-    project: 'project',
-    projectkpi: 'projectkpi',
-    projectstrategickpi: 'projectstrategickpi',
-    projecttype: 'projecttype',
-    stakeholder: 'stakeholder',
-    strategickpi: 'strategickpi',
-    supporter: 'supporter',
-    users: 'users'
-  }
 
 exports.storeOptions  = {
     host: 'localhost',

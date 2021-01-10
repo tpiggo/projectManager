@@ -62,7 +62,10 @@ class Budget extends ProjectInput{
     pushToBreakdown(breakdown){
         this.breakdown.push(breakdown);
     }
-    
+
+    toJson(){
+        return {amount: this.amount, breakdown: this.breakdown};
+    }
     /**
      * @description Recursive function for validating breakdown
      * @param {Number} amount 
@@ -278,7 +281,7 @@ function createInputSpace(target, nameId){
         } else if (element.tagName == 'select'){
             // fix this element.
         } else {
-
+            
         }
     }
 }
@@ -287,49 +290,71 @@ function removeInputSpace(target){
 
 }
 /**
- * 
+ * @description Get the information from within the categories container given by the user.
  * @param {HTMLDivElement} element 
+ * @returns {Promise<{name: String, data: {projectType: String, vision: String, scope: String}}} 
  */
 function getCategoriesContainers(element){
     return new Promise((resolve, reject) => {
         // reject the empty cases!!
         let returnable = {};
-        let rejection = [];
+        let rejection = false;
         let selects = element.getElementsByTagName('select');
         for(let i = 0; i < selects.length; i++){
-            returnable[selects[i].type] = selects[i].value;
-            if(selects[i].value=='default')
-                rejection.push(selects[i]);
+            returnable[selects[i].getAttribute('type')] = selects[i].value;
+            if(selects[i].value=='default'){
+                // popup error
+                rejection = true;
+            }
         }
-        if ( rejection.length > 0){
+        if ( rejection ){
             // Error popups
             reject(new Error('Proper data missing in categories!'));
-        } else{
-            resolve({name: 'Categories', data: returnable});
+        } else {
+            resolve({name: 'objective', data: returnable.objective});
         }
     });
     
 }
 
 /**
- * 
+ * @description Get the information from within the project name container given by the user.
  * @param {HTMLDivElement} element 
+ * @returns {Promise<{name: String, data: {projectType: String, vision: String, scope: String}}}
  */
 function getProjectName(element){
     return new Promise((resolve, reject) => {
         // reject the empty cases!!
         let value = element.getElementsByTagName('input')[0].value;
         if (value == ''){
+            // Create popup
             reject(new Error('Proper data missing in name!'))
         } else {
-            resolve({name: "Name", data: value });
+            resolve({name: "name", data: value });
         }
     });
 }
 
 /**
- * 
+ * @description Get the information from within the project description container given by the user.
  * @param {HTMLDivElement} element 
+ * @returns {Promise<{name: String, data: {projectType: String, vision: String, scope: String}}}
+ */
+function getProjectDescription(element){
+    return new Promise((resolve, reject) => {
+        let description = element.getElementsByTagName('textarea')[0].value;
+        if ( description == ''){
+            // Create popup
+            return reject(new Error('Missing project description!'));
+        }
+        resolve({name: 'description', data: description});
+    });
+}
+
+/**
+ * @description Get the information from within the TypeVisionScope container given by the user.
+ * @param {HTMLDivElement} element 
+ * @returns {Promise<{name: String, data: {projectType: String, vision: String, scope: String}}}
  */
 function getTypeVisionScope(element){
     return new Promise((resolve, reject) => {
@@ -370,13 +395,14 @@ function getOwner(element) {
         if ( element.value == 'default'){
             return reject(new Error("Default value for owner!"))
         }
-        resolve({id: element.value});
+        resolve({name:"owner", data: element.value});
     });
 }
 
 /**
- * 
- * @param {HTMLDivElement} supportersInput 
+ * @description Gets the information from within the supporters container given by the user.
+ * @param {HTMLDivElement} supportersInput
+ * @returns {Promise<{name: String, data: Array<{id: Number, role: String}>}}
  */
 function getSupporters(supportersInput){
     return new Promise((resolve, reject) => {
@@ -389,7 +415,7 @@ function getSupporters(supportersInput){
             let sSelect = supportersInput[i].getElementsByTagName('select')[0].value;
             let role = supportersInput[i].getElementsByTagName('textarea')[0].value;
             if (sSelect != 'default' && role !=''){
-                supporters.push(new Supporter(sSelect, role));
+                supporters.push({id: sSelect, role: role});
             } else {
                 // push popup
                 console.log('Error: Missing input for supporter!');
@@ -398,7 +424,7 @@ function getSupporters(supportersInput){
         }
         
         console.log('Before Rejection getSupporters')
-        if ( rejection ){
+        if ( rejection || supporters.length == 0 ){
             return reject(new Error('Missing input for supporters'));
         }
         resolve({name: 'supporters', data: supporters});
@@ -406,10 +432,11 @@ function getSupporters(supportersInput){
 }
 
 /**
- * 
+ * @description Get the information from within the container given by the user.
  * @param {HTMLElement} container 
  * @param {String} type 
- * @param {String} name 
+ * @param {String} name
+ * @returns {Promise<{name: String, data: Array<any>}}
  */
 function getInputFromLists(container, type, name){
     return new Promise((resolve, reject) => {
@@ -429,7 +456,7 @@ function getInputFromLists(container, type, name){
         }
         
         console.log('Before Rejection getInputFromList')
-        if ( rejection ){
+        if ( rejection || list.length == 0 ){
             return reject(new Error(`Missing input for ${name}`));
         }
         resolve({name: name, data: list});
@@ -437,8 +464,9 @@ function getInputFromLists(container, type, name){
 }
 
 /**
- * 
- * @param {HTMLDivElement} container 
+ * @description Get the information from within the milestones container given by the user.
+ * @param {HTMLDivElement} container
+ * @returns {Promise<{name: String, data: Array<JSON>}}
  */
 function getMilestones(container){
     return new Promise((resolve, reject) => {
@@ -452,26 +480,26 @@ function getMilestones(container){
                 rejection = true;
                 console.log("Error: first input cannot be default!");
             } else {
-                strat.push(new Milestone(
-                    i,
-                    dates[0].value,
-                    dates[1].value,
-                    txt.value
-                ));
+                milestones.push({
+                    id: i,
+                    start: dates[0].value,
+                    deadline: dates[1].value,
+                    desc: txt.value
+                });
             }
         }
-        
-        console.log('Before Rejection getMilestones')
-        if ( rejection ){
-            return reject(new Error('Missing input for stakeholders'));
+
+        if ( rejection || milestones.length == 0 ){
+            return reject(new Error('Missing input for milestones'));
         }
         resolve({name: 'milestones', data: milestones});
     });
 }
 
 /**
- * 
+ * @description Gets the information within the budget container.
  * @param {HTMLDivElement} container 
+ * @returns {Promise<{name: String, data: {amount: Number, breakdown: Array<JSON>}>}}
  */
 function getBudget(container){
     return new Promise((resolve, reject) => {
@@ -498,9 +526,8 @@ function getBudget(container){
             return reject(new Error("Error in budget"));
         } else if (!budget.breakdownIsValid()){
             return reject(new Error("Budget breakdown is invalid! Check your math"));
-        } 
-        console.log(budget.breakdownIsValid())
-        resolve({name: "Budget", data: budget});
+        }
+        resolve({name: "budget", data: budget.toJson()});
     });
 }
 /**
@@ -520,6 +547,7 @@ function extractProjectInformaiton(isEditor=false, callback){
     Promise.all([
         getCategoriesContainers(mainContainer.namedItem('categories-container')),
         getProjectName(mainContainer.namedItem('project-name-container')),
+        getProjectDescription(mainContainer.namedItem('project-description-container')),
         getTypeVisionScope(mainContainer.namedItem('type-vs-container').children[1]),
         getOwner(mainContainer.namedItem('owners-supporters-container').children[1]),
         getSupporters(mainContainer.namedItem('owners-supporters-container').children[1]),
@@ -542,13 +570,11 @@ function extractProjectInformaiton(isEditor=false, callback){
         getBudget(mainContainer.namedItem('budget-container').children[1])
     ])
         .then(results => {
-            console.log(results);
-            return callback(null, results);
+            callback(null, results);
         })
         .catch(err => {
-            console.error(err);
-            // SHould not ever get here
-            return callback(err);
+            // Should not ever get here
+            callback(err);
         });
 }
 
@@ -572,7 +598,26 @@ function createProject(target){
         }
         // Call backend 
         console.log(data);
-
+        // Make the post request
+        fetch('/DBApi/create-project',{
+            method: "POST",
+            body: JSON.stringify({data: data}),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then( response => {
+                if (response.status >300 ){
+                    throw new Error(response.statusText);
+                }
+                return response.json();
+            })
+            .then(response => {
+                console.log(response)
+            })
+            .catch(err => {
+                console.error(err)
+            })
     });
 
 }

@@ -1,4 +1,5 @@
 const express = require('express');
+const { promises } = require('fs');
 const { isAuthenticated, asyncIsAuth } = require('../middleware/authenicator');
 var router = express.Router(),
     MySQLLib = require('../db/js/mysqlLib'),
@@ -498,7 +499,9 @@ router.get('/get-project', (req, res) =>{
 
 });
 
-// User creation, put, deletion and updating routes!
+/****************************************
+ * User creation, put, deletion and updating routes!
+ ****************************************/
 router.post('/create-user', isAuthenticated, (req, res)=> {
     console.log(req.body);
     let sql = 'insert into users (username, upass, email, ulevel) values (?)';
@@ -509,15 +512,15 @@ router.post('/create-user', isAuthenticated, (req, res)=> {
         })
         .then(encPass => {
             let user = [req.body.username, encPass, req.body.email, req.body.userLevel];
-            return MySQLLib.query(sql, [user])
+            return MySQLLib.insert(sql, [user])
         })
         .then(result => {  
-            console.log(result)
+            console.log(result);
             res.json({response: 'Successfully added!'});
         })
-        .catch(err=> {
-            console.log(err);
-            if (err.code != undefined && err.code == 'ER_DUP_ENTRY'){
+        .catch(err => {
+            console.log('here', err);
+            if (err.code == 'ER_DUP_ENTRY'){
                 let msg = '';
                 switch (err.sqlMessage){
                     case err.sqlMessage.includes('username'):
@@ -532,13 +535,16 @@ router.post('/create-user', isAuthenticated, (req, res)=> {
                 }
                 return res.status(400).json({err: msg});
             }
-            res.status(500).json({errorMessage: "Internal server error"});
+            res.status(500).json({err: "Internal server error"});
         });
 });
 
-/**
+
+
+/****************************************
  * Routing for direct information about priorities, directions, objectives, strategicKPIs and departments
- */
+ ****************************************/
+
 
 router.get('/get-priorities', asyncIsAuth, (req, res) => {
     MySQLLib.query('Select priorityid as id, name from priority')
@@ -637,5 +643,111 @@ router.get('/get-types', asyncIsAuth, (req, res) => {
             res.status(500).json({error: "Internal server error!"});
         });
 });
+
+
+/****************************************
+ * Postable project information
+ ****************************************/
+class ProjectData{
+    #id = -1;
+    #name;
+    #ownerID=-1;
+    #objectiveID=-1;
+    #description;
+    #type;
+    #scope;
+    #vision;
+    #weight;
+    #survey;
+    #budget;
+    constructor({name, owner, description, objective, type, scope, vision, budget, weight=0, survey=false}){
+        this.#description = description;
+        this.#name = name;
+        this.#weight = weight;
+        this.#survey = survey;
+        this.#vision = vision;
+        this.#ownerID = owner;
+        this.#scope = scope;
+        this.#objectiveID = objective;        
+        this.#type = type;
+        this.#budget = budget;
+    }
+    setProperty(property, value){
+        switch (property){
+            case 'owner':
+                this.#ownerID = value;
+                break;
+            case 'name':
+                this.#name = value;
+                break;
+            case 'description':
+                this.#description = value;
+                break;
+            case 'objective':
+                this.#objectiveID = value;
+                break;
+            case 'type':
+                this.#type = value;
+                break;
+            case 'scope':
+                this.#scope = value;
+                break;
+            case 'weight':
+                this.#weight = value;
+                break;
+            case 'survey':
+                this.#survey = value;
+                break;
+            case 'vision':
+                this.#vision = value;
+                break;
+            case 'budget':
+                this.#budget = value;
+                break;
+        }
+    }
+    getQuery(){
+        return `(${this.#name}, 
+        ${this.#ownerID}, 
+        ${this.#objectiveID}, 
+        ${this.#description}, 
+        ${this.#budget},
+        ${this.#type}
+        ${this.#scope},
+        ${this.#vision},
+        ${this.#weight},
+        ${this.#survey})`
+    }
+
+}
+
+
+router.post('/create-project', asyncIsAuth, (req, res) => {
+    // Transform the data into the proper types
+    let projectData = {};
+    let data = req.body.data;
+    // Gets the required information out the array. Use this to create a project
+    // This can be done in a loop since we can ensure the data is sent in the proper order from the client. 
+    data.forEach(value => {
+        if (value.name== 'name' || value.name == 'owner' || value.name == 'objective' || value.name == 'description'){
+            projectData[value.name] = value.data;
+        } else if (value.name == 'tvs'){
+            projectData.type = value.data.projectType;
+            projectData.scope = value.data.scope;
+            projectData.vision = value.data.vision;
+        } else if (value.name == 'budget'){
+            projectData.budget = value.data.amount;
+        }
+    });
+    let project = new ProjectData(projectData);
+    console.log(project.getQuery());
+    // Create the insert query string
+    let sql = 'insert into project (name, owner, objectiveid, description, budget, projecttype, projectscope, vision, weight, survery) values ?';
+    // Create the project and return it's id!;
+    let id = -1;
+
+    res.json({res: 'received and handled'});
+});
+
 
 module.exports = router;

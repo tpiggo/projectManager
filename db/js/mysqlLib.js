@@ -1,4 +1,6 @@
 var mysql = require('mysql');
+var myPromisedSQL = require('promise-mysql');
+
 /**
  * Connection to the MySQL DB
  * Single accessor script for all DB interactions. Keeping it all in one manageable place
@@ -76,38 +78,31 @@ exports.insert = function (query, insertables) {
     return new Promise((resolve, reject) => {
         pool.getConnection((err, conn) =>{
             if (err){
-                console.log('error1');
+                console.log('--- error 1');
                 return reject(err);
             };
             conn.beginTransaction((err)=>{
                 if (err) {
-                    console.log('error2: rolling back');
+                    console.log('--- error 2: No rollback');
                     return reject(err);
                 }
                 conn.query(query, insertables, (err, result) => {
                     if (err) {
-                        return conn.rollback((error)=>{
-                            if (error){ 
-                                console.log('error3: rolling back');
-                                return reject(error);
-                            }
-                            console.log('error4: rolling back');
+                        return conn.rollback(()=>{
+                            console.log('--- error 3: rolling back');
                             reject(err);
                         });
                     }
                     conn.commit((err) =>{
                         if (err) {
-                            return conn.rollback((error)=>{
-                                if (error){ 
-                                console.log('error5: rolling back');
-                                    return reject(error);
-                                }
-                                console.log('error6: rolling back');
+                            return conn.rollback(() =>{
+                                console.log('--- error 4: rolling back');
                                 reject(err);
                             });   
+                        } else {
+                            resolve(result);
                         }
                         conn.release();
-                        resolve(result);
                     });
                 });
             });

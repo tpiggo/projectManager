@@ -172,7 +172,8 @@ function addToSelects(elementId, list){
             let inner = '';
             if (elementId == 'select-stakeholder1'){
                 let optionType = value.department==1?'department':"company";
-                inner = `<option type='${optionType}' value=${value.id}>${value.name}</option>`
+                let data = {id: value.id, type: optionType}
+                inner = `<option  value=${JSON.stringify(data)}>${value.name}</option>`
             } else {
                 inner = `<option value=${value.id}>${value.name}</option>`
             }
@@ -416,7 +417,7 @@ function getSupporters(supportersInput){
             let sSelect = supportersInput[i].getElementsByTagName('select')[0].value;
             let role = supportersInput[i].getElementsByTagName('textarea')[0].value;
             if (sSelect != 'default' && role !=''){
-                supporters.push({id: sSelect, role: role});
+                supporters.push({id: parseInt(sSelect), role: role});
             } else {
                 // push popup
                 console.log('Error: Missing input for supporter!');
@@ -452,7 +453,9 @@ function getInputFromLists(container, type, name){
                 rejection = true;
                 console.log("Error: first input cannot be default!");
             } else if (name == 'stakeholders'){
-                list.push({id: inputSelect[0].value, type: inputSelect[0].getAttribute('type')});
+                list.push(JSON.parse(inputSelect[0].value));
+            } else if (name == 'strategicKpi'){
+                list.push(parseInt(inputSelect[0].value));
             } else {
                 list.push(inputSelect[0].value);
             }

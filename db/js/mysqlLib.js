@@ -31,12 +31,13 @@ exports.getConnection = function (callback){
  */
 exports.query = function(query, input=null){
     return new Promise((resolve, reject) =>{
-        pool.getConnection((err, conn)=>{
+        this.getConnection((err, conn)=>{
             if (err) reject(err);
             if (input == null){
                 conn.query(query, (err, result) =>{
                     // Release the connection. Wihtout it, we stall after 3 threads...
                     conn.release();
+                    console.log(result);
                     if (err) reject(err);
                     else resolve(result);
                 });

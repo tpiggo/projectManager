@@ -1,5 +1,4 @@
 const express = require('express');
-const { promises } = require('fs');
 const { isAuthenticated, asyncIsAuth } = require('../middleware/authenicator');
 var router = express.Router(),
     MySQLLib = require('../db/js/mysqlLib'),
@@ -166,7 +165,6 @@ function groupProjectInformation(projectIDinsert,objInsert, genericListQuery,id)
         .then(results => {
             //Savehte supporters, shed extra information (unneeded)
             results.forEach(value => {
-                console.log(value)
                 supporters.push({id: value.supporterid, numproj: value.numprojects, name: value.name});
             });
             resolve({
@@ -187,13 +185,6 @@ function groupProjectInformation(projectIDinsert,objInsert, genericListQuery,id)
     });
 }
 
-router.post('/test', (req, res) => {
-    console.log(req);
-    console.log(req.headers);
-    req.
-    res.json({res: "answering"});
-
-})
 /**
  * Accessor for priority information, given id
  */
@@ -232,7 +223,7 @@ router.get('/get-priority', (req, res) =>{
             res.json(result);
         })
         .catch(err => {
-            console.log(err);
+            console.error(err);
             res.status(500).json(err);
         })
 });
@@ -253,7 +244,6 @@ router.get('/get-priority-projects', (req, res) =>{
             where d.priorityid = ?	
         )
     )`;
-    console.log(req.query);
     MySQLLib.query(getProjects(projectInsert), req.query.id)
         .then(results => {
             res.json({data: results, type: 'priority-projects'});
@@ -503,7 +493,6 @@ router.get('/get-project', (req, res) =>{
  * User creation, put, deletion and updating routes!
  ****************************************/
 router.post('/create-user', isAuthenticated, (req, res)=> {
-    console.log(req.body);
     let sql = 'insert into users (username, upass, email, ulevel) values (?)';
     bcrypt.genSalt(12)
         .then(result => {
@@ -519,7 +508,6 @@ router.post('/create-user', isAuthenticated, (req, res)=> {
             res.json({response: 'Successfully added!'});
         })
         .catch(err => {
-            console.log('here', err);
             if (err.code == 'ER_DUP_ENTRY'){
                 let msg = '';
                 switch (err.sqlMessage){
@@ -674,6 +662,9 @@ class ProjectData{
     }
     setProperty(property, value){
         switch (property){
+            case "id":
+                this.#id = value;
+                break;
             case 'owner':
                 this.#ownerID = value;
                 break;
@@ -718,7 +709,9 @@ class ProjectData{
         ${this.#weight},
         ${this.#survey})`
     }
-
+    getID(){
+        return this.#id;
+    }
 }
 
 
@@ -726,6 +719,7 @@ router.post('/create-project', asyncIsAuth, (req, res) => {
     // Transform the data into the proper types
     let projectData = {};
     let data = req.body.data;
+    let relationalData = {};
     // Gets the required information out the array. Use this to create a project
     // This can be done in a loop since we can ensure the data is sent in the proper order from the client. 
     data.forEach(value => {
@@ -737,15 +731,75 @@ router.post('/create-project', asyncIsAuth, (req, res) => {
             projectData.vision = value.data.vision;
         } else if (value.name == 'budget'){
             projectData.budget = value.data.amount;
+            relationalData.budgetBreakdown = value.data.breakdown;
+        } else {
+            relationalData[value.name] = value.data;
         }
     });
+    if (Object.keys(relationalData).length > 6){
+        return res.status(400).json({err: 'Too many arguments'});
+    }
     let project = new ProjectData(projectData);
     console.log(project.getQuery());
     // Create the insert query string
     let sql = 'insert into project (name, owner, objectiveid, description, budget, projecttype, projectscope, vision, weight, survery) values ?';
-    // Create the project and return it's id!;
-    let id = -1;
-
+    // MySQLLib.insert(sql, project.getQuery())
+    //     .then(result => {
+    //         // supporter handlers
+    //         sql = 'insert into supporter (departmentid, projectid, supportrole) values ?';
+    //         let insertable = [];
+    //         project.setProperty('id', result.id);
+    //         relationalData.supporters.forEach(value => {
+    //             insertable.push([value.id, result.insertId, value.role]);
+    //         });
+    //         return MySQLLib.query(sql, insertable);
+    //     })
+    //     .then(result => {
+    //         // Strategickpi handler
+    //         sql = 'insert into projectstrategickpi (projectid, strategickpiid) values ?';
+    //         let insertable = [];
+    //         relationalData.supporters.forEach(value => {
+    //             insertable.push([project.getID() ,value.id]);
+    //         });
+    //         return MySQLLib.query(sql, insertable);
+    //     })
+    //     .then(result => {
+    //         // projectKpi handler
+    //         sql = 'insert into projectkpi (projectid, kpi) values ?';
+    //         let insertable = [];
+    //         relationalData.supporters.forEach(value => {
+    //             insertable.push([project.getID(), value]);
+    //         });
+    //         return MySQLLib.query(sql, insertable);
+    //     })
+    //     .then(result => {
+    //         // stakeholder
+    //         sql = 'insert into projectkpi (projectid, kpi) values ?';
+    //         let insertable = [];
+    //         relationalData.supporters.forEach(value => {
+    //             insertable.push([project.getID(), value]);
+    //         });
+    //         return MySQLLib.query(sql, insertable);
+    //     })
+    //     .then(result => {
+    //         sql = 'insert into projectkpi (projectid, kpi) values ?';
+    //         let insertable = [];
+    //         relationalData.supporters.forEach(value => {
+    //             insertable.push([project.getID(), value]);
+    //         });
+    //         return MySQLLib.query(sql, insertable);
+    //     })
+    //     .then(result => {
+    //         sql = 'insert into projectkpi (projectid, kpi) values ?';
+    //         let insertable = [];
+    //         relationalData.supporters.forEach(value => {
+    //             insertable.push([project.getID(), value]);
+    //         });
+    //         return MySQLLib.query(sql, insertable);
+    //     })
+    //     .catch(err => {
+    //         console.error(err);
+    //     });
     res.json({res: 'received and handled'});
 });
 

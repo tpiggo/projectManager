@@ -17,7 +17,7 @@ authenticator.isAuthenticated = (req, res, next)=>{
 
 authenticator.asyncIsAuth = (req, res, next)=>{
     if (req.session.authenticated){
-        return next()
+        return next();
     }
     console.log(req.session, req.session.authenticated, req.session.username);
     res.status(400).json({error: 'No Access!'});

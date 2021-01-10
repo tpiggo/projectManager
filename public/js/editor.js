@@ -133,6 +133,7 @@ function editorOnLoad(){
     });
     Promise.all(promises)
         .then(results => {
+            console.log(results);
             let chainedPromises = [];
             for (let i = 0; i < results.length; i++){
                 if (get[i] == "types"){
@@ -169,7 +170,7 @@ function addToSelects(elementId, list){
         let element = document.getElementById(elementId);
         list.forEach(value => {
             let inner = '';
-            if (elementId == 'stakeholders'){
+            if (elementId == 'select-stakeholder1'){
                 let optionType = value.department==1?'department':"company";
                 inner = `<option type='${optionType}' value=${value.id}>${value.name}</option>`
             } else {
@@ -450,6 +451,8 @@ function getInputFromLists(container, type, name){
             if (inputSelect[0].value == nonValue){
                 rejection = true;
                 console.log("Error: first input cannot be default!");
+            } else if (name == 'stakeholders'){
+                list.push({id: inputSelect[0].value, type: inputSelect[0].getAttribute('type')});
             } else {
                 list.push(inputSelect[0].value);
             }
